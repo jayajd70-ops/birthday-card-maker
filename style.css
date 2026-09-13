@@ -318,9 +318,9 @@ button{cursor:pointer}
   .workspace{grid-template-columns:220px 1fr 280px}
 }
 @media (max-width: 860px){
-  .workspace{grid-template-columns:1fr;grid-template-rows:auto auto auto;overflow:auto}
+  .workspace{display:flex;flex-direction:column;overflow:auto;min-height:0}
   .stage-wrap{order:-1;min-height:min(720px,calc(96vw * 1.4 + 20px))}
-  .side{max-height:none;border:none;border-bottom:1px solid var(--line)}
+  .side{flex:none;max-height:none;overflow:visible;border:none;border-bottom:1px solid var(--line)}
   .side.right{border-left:none;border-top:1px solid var(--line)}
   .stage-wrap{padding:12px}
   .photo-workspace{grid-template-columns:1fr}
@@ -340,9 +340,36 @@ button{cursor:pointer}
   .stage{width:min(500px,96%);border-radius:12px}
   .stage canvas,.welcome{border-radius:12px}
   .side{padding:14px}
+  .side.right{padding-bottom:36px}
+  .field{scroll-margin-block:22vh}
+  .field input{min-height:44px}
+  .field textarea{min-height:150px;line-height:1.45;resize:vertical}
   .theme-grid{grid-template-columns:repeat(4,1fr)}
   .theme-swatch{height:58px}
   .theme-swatch span{font-size:9px;left:5px}
   .photo-controls{grid-template-columns:1fr}
   .modal-inner{width:96vw;max-height:94vh}
+  #modal-photo{align-items:stretch}
+  #modal-photo .modal-inner{width:100vw;height:100dvh;max-height:none;border-radius:0;border-left:0;border-right:0}
+  #modal-photo .modal-head{position:sticky;top:0;z-index:2;padding:12px 14px;background:var(--bg-1)}
+  #modal-photo .modal-head h2{font-size:18px}
+  #modal-photo .photo-workspace{padding:12px}
+  #modal-photo .photo-preview:first-child{display:none}
+  #modal-photo .photo-preview canvas{max-width:min(82vw,360px)}
+  #modal-photo .photo-controls{padding:0 12px 28px;gap:14px}
+  #modal-photo .crop-tools{padding:12px;gap:10px}
+  #modal-photo .crop-copy{min-width:0}
+  #modal-photo .crop-buttons{display:grid;grid-template-columns:1fr 1fr;width:100%;gap:8px}
+  #modal-photo .crop-buttons .btn{width:100%;min-height:42px;padding:8px 6px}
+  #modal-photo .photo-controls .ctrl{gap:7px}
+  #modal-photo .photo-controls .ctrl input[type=range]{min-height:32px}
+
+  /* Put the two actions people need first: choose a design, then write the card. */
+  .side.left{display:contents}
+  .side.left .panel{order:2;margin:0;padding:14px;background:var(--bg-1);border-bottom:1px solid var(--line)}
+  .side.left .panel:first-child{order:0}
+  .side.right{order:1}
+  .side.left .panel:first-child .preset-list{display:flex;gap:10px;overflow-x:auto;padding:0 1px 8px;scroll-snap-type:x proximity}
+  .side.left .panel:first-child .preset-item{flex:0 0 118px;scroll-snap-align:start}
+  .side.left .panel:first-child .preset-item .thumb{aspect-ratio:5/6.3}
 }

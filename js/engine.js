@@ -759,6 +759,7 @@ export class CardEngine {
     img.onload = () => this.requestRender();
     img.src = url;
     this.photoCache.set(photoId, img);
+    return img;
   }
 
   /* -------- Interactions -------- */

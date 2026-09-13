@@ -178,7 +178,13 @@ async function handlePhotoUpload(file) {
   try {
     const id = 'ph_' + Math.random().toString(36).slice(2, 10);
     const url = URL.createObjectURL(file);
-    engine.attachPhoto(id, url);
+    const image = engine.attachPhoto(id, url);
+    if (!image.complete || !image.naturalWidth) {
+      await new Promise((resolve) => {
+        image.addEventListener('load', resolve, { once: true });
+        image.addEventListener('error', resolve, { once: true });
+      });
+    }
     const photo = engine.addPhoto(id);
     dismissWelcome();
     scheduleAutosave();
@@ -696,6 +702,14 @@ bindText('in-age', 'age');
 bindText('in-message', 'message');
 bindText('in-sender', 'sender');
 bindText('in-secondary', 'secondary');
+
+// Keep the active field clear of the mobile keyboard inside the scrolling workspace.
+document.querySelectorAll('.side.right input, .side.right textarea, .side.right select').forEach((field) => {
+  field.addEventListener('focus', () => {
+    if (!window.matchMedia('(max-width: 860px)').matches) return;
+    setTimeout(() => field.scrollIntoView({ behavior: 'smooth', block: 'center' }), 180);
+  });
+});
 
 /* ---- Welcome start ---- */
 $('#btn-start').addEventListener('click', () => {
