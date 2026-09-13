@@ -234,6 +234,33 @@ const PHOTO_SLIDERS = [
 function buildPhotoControls(target) {
   const wrap = $('#photo-controls');
   wrap.innerHTML = '';
+  const crop = document.createElement('div');
+  crop.className = 'crop-tools';
+  crop.innerHTML = `
+    <div class="crop-copy"><strong>Crop & position</strong><span>Drag the crop preview to choose what stays inside the card frame.</span></div>
+    <div class="crop-buttons">
+      <button type="button" class="btn" data-testid="adj-crop-left">Focus Left</button>
+      <button type="button" class="btn" data-testid="adj-crop-center">Focus Centre</button>
+      <button type="button" class="btn" data-testid="adj-crop-right">Focus Right</button>
+      <button type="button" class="btn" data-testid="adj-show-full">Show Full Photo</button>
+      <button type="button" class="btn" data-testid="adj-crop-frame">Crop to Frame</button>
+      <button type="button" class="btn ghost" data-testid="adj-reset-crop">Reset Crop</button>
+    </div>
+  `;
+  wrap.appendChild(crop);
+  const updateCrop = (patch, rebuild = false) => {
+    target.adj = { ...(target.adj || defaultAdj()), ...patch };
+    engine.requestRender();
+    if (rebuild) buildPhotoControls(target);
+    drawPhotoPreviews(target);
+    scheduleAutosave();
+  };
+  crop.querySelector('[data-testid=adj-crop-left]').onclick = () => updateCrop({ fitMode: 'fill', offsetX: 90, offsetY: 0 });
+  crop.querySelector('[data-testid=adj-crop-center]').onclick = () => updateCrop({ fitMode: 'fill', offsetX: 0, offsetY: 0 });
+  crop.querySelector('[data-testid=adj-crop-right]').onclick = () => updateCrop({ fitMode: 'fill', offsetX: -90, offsetY: 0 });
+  crop.querySelector('[data-testid=adj-show-full]').onclick = () => updateCrop({ fitMode: 'fit', offsetX: 0, offsetY: 0 }, true);
+  crop.querySelector('[data-testid=adj-crop-frame]').onclick = () => updateCrop({ fitMode: 'fill' }, true);
+  crop.querySelector('[data-testid=adj-reset-crop]').onclick = () => updateCrop({ offsetX: 0, offsetY: 0, zoom: 1, rotation: 0, fitMode: 'fill' }, true);
   PHOTO_SLIDERS.forEach(s => {
     const c = document.createElement('div');
     c.className = 'ctrl';
@@ -295,12 +322,50 @@ function drawPhotoPreviews(el) {
   adj.scale(a.flipX ? -1 : 1, a.flipY ? -1 : 1);
   adj.drawImage(img, -dw/2, -dh/2, dw, dh);
   adj.restore();
+  // The guide matches the card's actual circular or rectangular photo frame.
+  adj.save();
+  adj.strokeStyle = 'rgba(230,201,138,.92)'; adj.lineWidth = 4;
+  adj.setLineDash([8, 6]);
+  if (el.shape === 'circle') {
+    adj.beginPath(); adj.arc(180, 180, 155, 0, Math.PI * 2); adj.stroke();
+  } else {
+    adj.strokeRect(28, 28, 304, 304);
+  }
+  adj.restore();
+}
+
+function installCropDrag(target) {
+  const canvas = $('#preview-adjusted');
+  let drag = null;
+  canvas.onpointerdown = (event) => {
+    const rect = canvas.getBoundingClientRect();
+    drag = { x: event.clientX, y: event.clientY, scale: 360 / rect.width };
+    canvas.setPointerCapture(event.pointerId);
+  };
+  canvas.onpointermove = (event) => {
+    if (!drag) return;
+    const dx = (event.clientX - drag.x) * drag.scale;
+    const dy = (event.clientY - drag.y) * drag.scale;
+    drag.x = event.clientX; drag.y = event.clientY;
+    target.adj = { ...(target.adj || defaultAdj()), fitMode: 'fill', offsetX: Math.max(-200, Math.min(200, (target.adj?.offsetX || 0) + dx)), offsetY: Math.max(-200, Math.min(200, (target.adj?.offsetY || 0) + dy)) };
+    engine.requestRender(); drawPhotoPreviews(target); scheduleAutosave();
+  };
+  const finish = () => { drag = null; };
+  canvas.onpointerup = finish;
+  canvas.onpointercancel = finish;
+  canvas.onwheel = (event) => {
+    event.preventDefault();
+    const zoom = (target.adj?.zoom || 1) * (event.deltaY < 0 ? 1.08 : .92);
+    target.adj = { ...(target.adj || defaultAdj()), fitMode: 'fill', zoom: Math.max(.5, Math.min(3, zoom)) };
+    engine.requestRender(); drawPhotoPreviews(target); scheduleAutosave();
+  };
 }
 
 function openPhotoAdjust(el) {
   engine.select(el.id);
   buildPhotoControls(el);
   drawPhotoPreviews(el);
+  installCropDrag(el);
   const m = $('#modal-photo'); m.hidden = false; m.setAttribute('aria-hidden','false');
 }
 

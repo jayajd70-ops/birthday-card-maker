@@ -89,7 +89,7 @@
           <div class="photo-actions">
             <button class="btn block" id="photo-input-label" type="button" data-testid="btn-add-photo">Add Photo</button>
             <input class="visually-hidden" type="file" id="photo-input" accept="image/*" multiple data-testid="input-photo" />
-            <button class="btn block" id="btn-adjust-photo" type="button" data-testid="btn-adjust-photo" disabled>Image Settings</button>
+            <button class="btn block" id="btn-adjust-photo" type="button" data-testid="btn-adjust-photo" disabled>Image Settings & Crop</button>
             <p class="photo-help" id="photo-help">Upload one photo, then choose how it is placed.</p>
           </div>
         </section>
@@ -109,7 +109,7 @@
         </div>
         <div class="stage-photo-tools" aria-label="Photo tools">
           <button class="btn primary" id="stage-add-photo" type="button" data-testid="btn-stage-add-photo">Add Photo</button>
-          <button class="btn" id="stage-image-settings" type="button" data-testid="btn-stage-image-settings" disabled>Image Settings</button>
+          <button class="btn" id="stage-image-settings" type="button" data-testid="btn-stage-image-settings" disabled>Image Settings & Crop</button>
         </div>
       </section>
 
@@ -169,7 +169,7 @@
     <div class="modal" id="modal-photo" hidden aria-hidden="true">
       <div class="modal-inner">
         <header class="modal-head">
-          <h2>Photo Adjustment</h2>
+          <h2>Photo Adjustment & Crop</h2>
           <button class="btn ghost" id="photo-close" data-testid="btn-close-photo-adjust" type="button">Done</button>
         </header>
         <div class="photo-workspace" id="photo-workspace">
@@ -178,7 +178,7 @@
             <canvas id="preview-original" width="360" height="360"></canvas>
           </div>
           <div class="photo-preview">
-            <span class="preview-label">Adjusted</span>
+            <span class="preview-label">Crop preview · drag to reposition</span>
             <canvas id="preview-adjusted" width="360" height="360"></canvas>
           </div>
         </div>

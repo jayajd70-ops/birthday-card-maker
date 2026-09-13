@@ -293,8 +293,16 @@ button{cursor:pointer}
 .photo-workspace{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:18px}
 .photo-preview{display:flex;flex-direction:column;align-items:center;gap:8px}
 .photo-preview canvas{width:100%;max-width:360px;aspect-ratio:1;background:#0f0c0a;border-radius:10px;border:1px solid var(--line-2)}
+.photo-preview:last-child canvas{cursor:grab;touch-action:none}
+.photo-preview:last-child canvas:active{cursor:grabbing}
 .preview-label{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
 .photo-controls{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:0 18px 18px}
+.crop-tools{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px;border:1px solid rgba(200,164,94,.35);border-radius:12px;background:rgba(35,27,19,.55)}
+.crop-copy{display:flex;flex-direction:column;gap:3px;min-width:170px}
+.crop-copy strong{font-family:var(--serif);font-size:16px;color:var(--gold-2)}
+.crop-copy span{font-size:11px;color:var(--muted);line-height:1.35}
+.crop-buttons{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.crop-buttons .btn{padding:7px 10px;font-size:12px}
 .photo-controls .ctrl{display:flex;flex-direction:column;gap:4px}
 .photo-controls .ctrl label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 .photo-controls .ctrl-row{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap}
@@ -317,6 +325,8 @@ button{cursor:pointer}
   .stage-wrap{padding:12px}
   .photo-workspace{grid-template-columns:1fr}
   .photo-controls{grid-template-columns:repeat(2,1fr)}
+  .crop-tools{align-items:flex-start;flex-direction:column}
+  .crop-buttons{justify-content:flex-start}
   .topbar{padding:10px 14px}
   .topbar-actions .btn{padding:7px 10px;font-size:12px}
   .brand-name{font-size:16px}
