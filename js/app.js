@@ -262,7 +262,7 @@ function buildPhotoControls(target) {
       scheduleAutosave();
     });
   };
-  PHOTO_SLIDERS.forEach(makeSlider);
+  PHOTO_SLIDERS.forEach((slider) => makeSlider(slider));
   const enhancement = document.createElement('details');
   enhancement.className = 'image-enhancement';
   enhancement.innerHTML = '<summary>Image Enhancement <span>Brightness, contrast and more</span></summary><div class="enhancement-grid"></div>';
