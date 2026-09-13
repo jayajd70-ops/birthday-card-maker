@@ -1,5 +1,5 @@
 /* Birthday Card Maker Premium — service worker */
-const VERSION = 'bcm-v1.3.0';
+const VERSION = 'bcm-v1.4.0';
 const CORE = [
   './',
   './index.html',
@@ -17,6 +17,9 @@ const CORE = [
   './assets/backgrounds/romantic-pink-v2.webp',
   './assets/backgrounds/celebration-blue-v2.webp',
   './assets/backgrounds/fresh-natural-v2.webp',
+  './assets/backgrounds/sunshine-yellow-v1.webp',
+  './assets/backgrounds/lavender-dream-v1.webp',
+  './assets/backgrounds/midnight-silver-v1.webp',
   './assets/decorations/white-peony-top-down.webp',
   './assets/decorations/velvet-ribbon-pink.webp',
   './assets/decorations/silver-satin-ribbon-premium.webp',

@@ -19,5 +19,11 @@ export const DECORATIONS = [
 ];
 
 export function decorationsForTheme(themeId) {
-  return DECORATIONS.filter(d => d.compatibleThemes.includes(themeId));
+  const aliases = {
+    'sunshine-yellow': 'elegant-gold',
+    'lavender-dream': 'romantic-pink',
+    'midnight-silver': 'celebration-blue',
+  };
+  const compatibleId = aliases[themeId] || themeId;
+  return DECORATIONS.filter(d => d.compatibleThemes.includes(compatibleId));
 }

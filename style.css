@@ -126,6 +126,7 @@ button{cursor:pointer}
   font-family:var(--serif);font-size:12px;letter-spacing:.04em;color:var(--ink-2);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
+.preset-item .day{margin-top:2px;color:var(--gold-2);font-size:9px;letter-spacing:.12em;text-transform:uppercase}
 .preset-item.custom .lbl::before{content:'★ ';color:var(--gold-2)}
 .preset-item .del{
   position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;

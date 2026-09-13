@@ -44,6 +44,27 @@ export const THEMES = {
     backgroundImage: 'assets/backgrounds/fresh-natural-v2.webp',
     swatch: 'linear-gradient(135deg,#eef0e6 0%,#c1cba4 55%,#7f9166 100%)',
   },
+  'sunshine-yellow': {
+    id: 'sunshine-yellow', label: 'Sunshine Joy',
+    bg: '#fff2bd', bgAccent: '#f4c94f', ink: '#573611',
+    accent: '#b76508', accent2: '#f1b91f',
+    backgroundImage: 'assets/backgrounds/sunshine-yellow-v1.webp',
+    swatch: 'linear-gradient(135deg,#fff5c9 0%,#f6c843 58%,#d8850d 100%)',
+  },
+  'lavender-dream': {
+    id: 'lavender-dream', label: 'Lavender Dream',
+    bg: '#eee8f7', bgAccent: '#c9b9e5', ink: '#3f285f',
+    accent: '#754c9e', accent2: '#d9d3e7',
+    backgroundImage: 'assets/backgrounds/lavender-dream-v1.webp',
+    swatch: 'linear-gradient(135deg,#f3eff9 0%,#c7afe2 58%,#8060a8 100%)',
+  },
+  'midnight-silver': {
+    id: 'midnight-silver', label: 'Midnight Silver',
+    bg: '#09234a', bgAccent: '#03152f', ink: '#f5f7fb',
+    accent: '#e5e9f0', accent2: '#8fa8cb',
+    backgroundImage: 'assets/backgrounds/midnight-silver-v1.webp',
+    swatch: 'linear-gradient(135deg,#061a38 0%,#173e73 58%,#d8dde7 100%)',
+  },
 };
 
 export const FONTS = {
