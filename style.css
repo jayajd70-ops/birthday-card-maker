@@ -301,6 +301,8 @@ button{cursor:pointer}
 
 /* Photo adjustment */
 .photo-workspace{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:18px}
+.photo-done{display:flex;justify-content:center;padding:0 18px 14px}
+.photo-done .btn{min-width:150px}
 .photo-preview{display:flex;flex-direction:column;align-items:center;gap:8px}
 .photo-preview canvas{width:100%;max-width:360px;aspect-ratio:1;background:#0f0c0a;border-radius:10px;border:1px solid var(--line-2)}
 .photo-preview:last-child canvas{cursor:grab;touch-action:none}

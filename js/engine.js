@@ -277,15 +277,15 @@ export class CardEngine {
       return;
     }
     // Polaroid frame: white padding around image
-    const framePad = 14;
-    const bottomPad = 26;
+    const framePad = 8;
+    const bottomPad = 14;
     const w = el.w, h = el.h;
     ctx.save();
     // outer frame shadow
     ctx.shadowColor = 'rgba(0,0,0,0.25)';
     ctx.shadowBlur = 18;
     ctx.shadowOffsetY = 6;
-    ctx.fillStyle = '#fff';
+    ctx.fillStyle = el.frameColor || '#fff';
     const r = 6;
     ctx.beginPath();
     ctx.moveTo(-w/2 + r, -h/2);
@@ -426,7 +426,7 @@ export class CardEngine {
 
     const titleX = comp.titleX ?? 250;
     // Reserve side margins for borders and artwork in every built-in background.
-    const titleWidth = comp.titleWidth ?? 340;
+    const titleWidth = comp.titleWidth ?? 310;
     ctx.textAlign = 'center'; ctx.fillStyle = theme.accent;
     if (comp.titleLines?.length) {
       let lineY = box.titleY;

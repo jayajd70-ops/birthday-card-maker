@@ -263,6 +263,13 @@ function buildPhotoControls(target) {
     });
   };
   PHOTO_SLIDERS.forEach((slider) => makeSlider(slider));
+  const frame = document.createElement('div');
+  frame.className = 'ctrl';
+  frame.innerHTML = `<label for="adj-frame-color">Border Colour</label><select id="adj-frame-color"><option value="#ffffff">White</option><option value="#f7e5e7">Blush</option><option value="#f4ead6">Ivory</option><option value="#dceffc">Blue</option><option value="#111111">Black</option></select>`;
+  wrap.appendChild(frame);
+  const frameColor = frame.querySelector('select');
+  frameColor.value = target.frameColor || '#ffffff';
+  frameColor.addEventListener('change', () => { target.frameColor = frameColor.value; engine.requestRender(); drawPhotoPreviews(target); scheduleAutosave(); });
   const enhancement = document.createElement('details');
   enhancement.className = 'image-enhancement';
   enhancement.innerHTML = '<summary>Image Enhancement <span>Brightness, contrast and more</span></summary><div class="enhancement-grid"></div>';
@@ -302,7 +309,7 @@ function drawPhotoPreviews(el) {
   // Adjusted preview mirrors the real card's inner crop area and aspect ratio.
   const a = el.adj || defaultAdj();
   const isCircle = el.shape === 'circle';
-  const framePad = 14, bottomPad = 26;
+  const framePad = 8, bottomPad = 14;
   const actualW = isCircle ? Math.min(el.w, el.h) - 20 : el.w - framePad * 2;
   const actualH = isCircle ? actualW : el.h - framePad - bottomPad;
   const frameScale = Math.min(300 / actualW, 300 / actualH);
@@ -460,10 +467,6 @@ function renderInspector() {
       <label class="field"><span>Width</span><input type="number" min="40" value="${Math.round(el.w)}" data-testid="sel-w"/></label>
       <label class="field"><span>Height</span><input type="number" min="40" value="${Math.round(el.h)}" data-testid="sel-h"/></label>
     </div>
-    <div class="row">
-      <button class="btn" data-testid="sel-lock" type="button">${el.locked ? 'Unlock' : 'Lock'}</button>
-      <button class="btn" data-testid="sel-visibility" type="button">${el.hidden ? 'Show' : 'Hide'}</button>
-    </div>
   `;
   box.querySelector('[data-testid=sel-forward]').onclick = () => engine.bringForward(1);
   const imageSettings = box.querySelector('[data-testid=sel-image-settings]');
@@ -475,8 +478,6 @@ function renderInspector() {
   box.querySelector('[data-testid=sel-rotation]').oninput = (e) => engine.setSelectedProp({ rotation: parseFloat(e.target.value) });
   box.querySelector('[data-testid=sel-w]').oninput = (e) => engine.setSelectedProp({ w: Math.max(40, parseFloat(e.target.value) || 40) });
   box.querySelector('[data-testid=sel-h]').oninput = (e) => engine.setSelectedProp({ h: Math.max(40, parseFloat(e.target.value) || 40) });
-  box.querySelector('[data-testid=sel-lock]').onclick = () => { engine.setSelectedProp({ locked: !el.locked }); renderInspector(); };
-  box.querySelector('[data-testid=sel-visibility]').onclick = () => { engine.setSelectedProp({ hidden: !el.hidden }); renderInspector(); };
 }
 
 engine.onSelect = () => renderInspector();
