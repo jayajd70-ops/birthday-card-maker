@@ -386,8 +386,8 @@ export class CardEngine {
     };
     const box = { ...(layouts[s.layout] || layouts['center-focus']), ...(comp.text || {}) };
     const titleFont = (FONTS[comp.titleFontId] || font).family;
-    const nameFont = (FONTS[comp.nameFontId] || font).family;
     const bodyFont = comp.bodyFont || "'Cormorant Garamond',Georgia,serif";
+    const nameFont = bodyFont;
     ctx.textBaseline = 'top';
 
     const fitSingle = (text, family, weight, style, start, min, width = box.width) => {

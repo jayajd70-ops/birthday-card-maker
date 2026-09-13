@@ -653,7 +653,7 @@ const PRESETS = [
   {
     id: 'p-elegant-gold', label: 'Elegant Gold', day: 'Monday',
     themeId: 'elegant-gold', fontId: 'script', layout: 'center-focus',
-    content: { name: 'Ananya', age: '30', message: 'Wishing you a day filled with love, happiness and all the beautiful moments you deserve.', sender: 'With Love, Team', secondary: '' },
+    content: { name: '', age: '', message: 'Wishing you a day filled with love, happiness and all the beautiful moments you deserve.', sender: '', secondary: '' },
     composition: {
       photoShape: 'polaroid', photoSlot: { x: 250, y: 250, w: 210, h: 240, rotation: -1 },
       titleX: 215, titleWidth: 330, titleSize: 53, bodySize: 18, senderSize: 23,
@@ -664,7 +664,7 @@ const PRESETS = [
   {
     id: 'p-romantic-pink', label: 'Romantic Pink', day: 'Tuesday',
     themeId: 'romantic-pink', fontId: 'script', layout: 'left-aligned',
-    content: { name: 'Priya', age: '', message: 'May your special day be as beautiful, kind and amazing as you are. Stay happy, stay blessed, keep shining!', sender: 'With Love, Your Friends', secondary: 'Happiness looks good on you!' },
+    content: { name: '', age: '', message: 'May your special day be as beautiful, kind and amazing as you are. Stay happy, stay blessed, keep shining!', sender: '', secondary: 'Happiness looks good on you!' },
     composition: {
       titleSize: 57, bodySize: 17,
       photoSlot: { x: 142, y: 286, w: 194, h: 232, rotation: -2 },
@@ -675,13 +675,13 @@ const PRESETS = [
   {
     id: 'p-celebration-blue', label: 'Celebration Blue', day: 'Wednesday',
     themeId: 'celebration-blue', fontId: 'bold', layout: 'center-focus',
-    content: { name: 'Rohan', age: '', message: 'Wishing you success, happiness, good health and countless joyful moments today and always!', sender: 'Enjoy your day!', secondary: 'To an amazing person' },
+    content: { name: '', age: '', message: 'Wishing you success, happiness, good health and countless joyful moments today and always!', sender: '', secondary: 'To an amazing person' },
     composition: {
       titleLines: [
         { text: 'HAPPY', fontId: 'bold', size: 25, advance: 25 },
         { text: 'Birthday', fontId: 'script', size: 54, weight: '600' },
       ],
-      nameFontId: 'script', bodyFont: "'Nunito',system-ui,sans-serif", bodySize: 16,
+      bodyFont: "'Nunito',system-ui,sans-serif", bodySize: 16,
       photoShape: 'circle', photoSlot: { x: 250, y: 245, w: 188, h: 188 },
       text: { nameY: 355, bodyY: 402, bodyBottom: 445, footerY: 475 },
     },
@@ -690,16 +690,16 @@ const PRESETS = [
   {
     id: 'p-fresh-natural', label: 'Fresh & Natural', day: 'Thursday',
     themeId: 'fresh-natural', fontId: 'hand', layout: 'right-aligned',
-    content: { name: 'Sneha', age: '', message: 'May this new year of your life bring you fresh opportunities, brighter days and everything your heart desires.', sender: 'With Best Wishes, Family', secondary: 'Good People, Brighter World' },
+    content: { name: '', age: '', message: 'May this new year of your life bring you fresh opportunities, brighter days and everything your heart desires.', sender: '', secondary: 'Good People, Brighter World' },
     composition: { titleSize: 54, bodyFont: "'Cormorant Garamond',Georgia,serif", bodySize: 18, text: { footerY: 500 } },
     elements: [],
   },
   {
     id: 'p-sunshine-yellow', label: 'Sunshine Joy', day: 'Friday',
     themeId: 'sunshine-yellow', fontId: 'hand', layout: 'left-aligned',
-    content: { name: 'Aarav', age: '', message: 'May your birthday glow with happiness, laughter and bright new memories from sunrise to sunset.', sender: 'With Warm Wishes', secondary: 'You make every day brighter' },
+    content: { name: '', age: '', message: 'May your birthday glow with happiness, laughter and bright new memories from sunrise to sunset.', sender: '', secondary: 'You make every day brighter' },
     composition: {
-      titleSize: 55, nameFontId: 'script', bodyFont: "'Cormorant Garamond',Georgia,serif", bodySize: 18,
+      titleSize: 55, bodyFont: "'Cormorant Garamond',Georgia,serif", bodySize: 18,
       photoSlot: { x: 142, y: 292, w: 196, h: 242, rotation: -2 },
       text: { x: 278, width: 168, align: 'left', nameY: 174, bodyY: 230, bodyBottom: 390, footerX: 250, footerWidth: 210, footerAlign: 'center', footerY: 470 },
     },
@@ -708,7 +708,7 @@ const PRESETS = [
   {
     id: 'p-lavender-dream', label: 'Lavender Dream', day: 'Saturday',
     themeId: 'lavender-dream', fontId: 'script', layout: 'center-focus',
-    content: { name: 'Meera', age: '', message: 'Wishing you a beautiful birthday filled with peaceful moments, sweet surprises and dreams coming true.', sender: 'With Love, Always', secondary: 'Bloom beautifully' },
+    content: { name: '', age: '', message: 'Wishing you a beautiful birthday filled with peaceful moments, sweet surprises and dreams coming true.', sender: '', secondary: 'Bloom beautifully' },
     composition: {
       titleSize: 56, bodySize: 18, photoShape: 'circle',
       photoSlot: { x: 250, y: 245, w: 190, h: 190 },
@@ -719,9 +719,9 @@ const PRESETS = [
   {
     id: 'p-midnight-silver', label: 'Midnight Silver', day: 'Sunday',
     themeId: 'midnight-silver', fontId: 'bold', layout: 'right-aligned',
-    content: { name: 'Kabir', age: '', message: 'Here’s to a brilliant birthday and a year filled with bold dreams, memorable nights and shining success.', sender: 'Celebrate in Style', secondary: 'The night is yours' },
+    content: { name: '', age: '', message: 'Here’s to a brilliant birthday and a year filled with bold dreams, memorable nights and shining success.', sender: '', secondary: 'The night is yours' },
     composition: {
-      titleSize: 42, nameFontId: 'script', bodyFont: "'Nunito',system-ui,sans-serif", bodySize: 16,
+      titleSize: 42, bodyFont: "'Nunito',system-ui,sans-serif", bodySize: 16,
       photoSlot: { x: 362, y: 292, w: 194, h: 240, rotation: 2 },
       text: { x: 220, width: 170, align: 'right', nameY: 168, bodyY: 225, bodyBottom: 375, footerY: 440 },
     },
