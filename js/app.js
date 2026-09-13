@@ -16,6 +16,7 @@ window.__engine = engine;
 let currentTemplateRecord = null;
 let autosaveTimer = null;
 let lastAiCandidates = [];
+let contentEdited = false;
 
 function toast(msg) {
   const el = $('#toast');
@@ -145,6 +146,7 @@ function setTheme(id) {
 function bindText(inputId, key) {
   const el = document.getElementById(inputId);
   el.addEventListener('input', () => {
+    contentEdited = true;
     engine.state.content[key] = el.value;
     dismissWelcome();
     engine.requestRender();
@@ -697,6 +699,8 @@ async function shareCard() {
   } catch (e) { console.error(e); toast('Share failed'); }
 }
 $('#btn-share').addEventListener('click', shareCard);
+$('#btn-bottom-share').addEventListener('click', shareCard);
+$('#btn-bottom-download').addEventListener('click', () => exportCard('png'));
 
 /* ---- Bindings ---- */
 bindText('in-name', 'name');
@@ -838,9 +842,13 @@ function composePresetState(preset) {
 }
 
 function applyPreset(preset) {
+  const currentContent = { ...engine.state.content };
+  const preserveContent = contentEdited || currentTemplateRecord || Boolean(
+    currentContent.name || currentContent.age || currentContent.sender || currentContent.secondary
+  );
   const photos = engine.state.elements.filter(e => e.type === 'photo').map(e => ({ ...e, adj: { ...(e.adj || defaultAdj()) } }));
   const st = composePresetState(preset);
-  if (preset.custom) { readContentInto(engine.state); st.content = { ...engine.state.content }; }
+  if (preset.custom || preserveContent) st.content = currentContent;
   engine.state = st;
   const slots = preset.layout === 'collage' ? photos.slice(0, 3) : photos.slice(0, 1);
   slots.forEach((photo, index) => {

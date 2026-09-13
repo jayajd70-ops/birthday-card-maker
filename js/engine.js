@@ -383,10 +383,10 @@ export class CardEngine {
     const comp = s.composition || {};
     const hasPhoto = s.elements.some(e => e.type === 'photo' && !e.hidden);
     const layouts = {
-      'center-focus': { titleY: 38, x: 250, width: 370, align: 'center', nameY: 372, bodyY: 430, bodyBottom: 520, footerY: 555 },
-      'left-aligned': { titleY: 38, x: 278, width: 168, align: 'left', nameY: 178, bodyY: 242, bodyBottom: 510, footerY: 610 },
-      'right-aligned': { titleY: 38, x: 222, width: 168, align: 'right', nameY: 178, bodyY: 242, bodyBottom: 510, footerY: 610 },
-      collage: { titleY: 36, x: 250, width: 390, align: 'center', nameY: 405, bodyY: 458, bodyBottom: 580, footerY: 646 },
+      'center-focus': { titleY: 38, x: 250, width: 320, align: 'center', nameY: 370, bodyY: 420, bodyBottom: 485, footerY: 535 },
+      'left-aligned': { titleY: 38, x: 290, width: 155, align: 'left', nameY: 178, bodyY: 242, bodyBottom: 490, footerY: 570 },
+      'right-aligned': { titleY: 38, x: 210, width: 155, align: 'right', nameY: 178, bodyY: 242, bodyBottom: 490, footerY: 570 },
+      collage: { titleY: 36, x: 250, width: 330, align: 'center', nameY: 400, bodyY: 450, bodyBottom: 550, footerY: 615 },
     };
     const textOverride = hasPhoto ? comp.text : comp.textOnly;
     const box = { ...(layouts[s.layout] || layouts['center-focus']), ...(textOverride || {}) };
@@ -425,7 +425,8 @@ export class CardEngine {
     };
 
     const titleX = comp.titleX ?? 250;
-    const titleWidth = comp.titleWidth ?? 410;
+    // Reserve side margins for borders and artwork in every built-in background.
+    const titleWidth = comp.titleWidth ?? 340;
     ctx.textAlign = 'center'; ctx.fillStyle = theme.accent;
     if (comp.titleLines?.length) {
       let lineY = box.titleY;
