@@ -207,6 +207,8 @@ export class CardEngine {
 
   drawEmptyPhotoSlots(ctx, theme) {
     const photos = this.state.elements.filter(e => e.type === 'photo' && !e.hidden);
+    // Photos are optional. Keep exported cards clean instead of printing an empty frame.
+    if (!photos.length) return;
     const slots = PHOTO_SLOTS[this.state.layout] || PHOTO_SLOTS['center-focus'];
     const needed = this.state.layout === 'collage' ? slots.length : 1;
     for (let i = photos.length; i < needed; i++) {
@@ -234,6 +236,7 @@ export class CardEngine {
 
   emptyPhotoSlotAt(x, y) {
     const photos = this.state.elements.filter(e => e.type === 'photo' && !e.hidden);
+    if (!photos.length) return -1;
     const slots = PHOTO_SLOTS[this.state.layout] || PHOTO_SLOTS['center-focus'];
     const needed = this.state.layout === 'collage' ? slots.length : 1;
     for (let i = photos.length; i < needed; i++) {
@@ -378,13 +381,15 @@ export class CardEngine {
   drawTexts(ctx, theme, font) {
     const s = this.state;
     const comp = s.composition || {};
+    const hasPhoto = s.elements.some(e => e.type === 'photo' && !e.hidden);
     const layouts = {
       'center-focus': { titleY: 38, x: 250, width: 370, align: 'center', nameY: 372, bodyY: 430, bodyBottom: 520, footerY: 555 },
       'left-aligned': { titleY: 38, x: 278, width: 168, align: 'left', nameY: 178, bodyY: 242, bodyBottom: 510, footerY: 610 },
       'right-aligned': { titleY: 38, x: 222, width: 168, align: 'right', nameY: 178, bodyY: 242, bodyBottom: 510, footerY: 610 },
       collage: { titleY: 36, x: 250, width: 390, align: 'center', nameY: 405, bodyY: 458, bodyBottom: 580, footerY: 646 },
     };
-    const box = { ...(layouts[s.layout] || layouts['center-focus']), ...(comp.text || {}) };
+    const textOverride = hasPhoto ? comp.text : comp.textOnly;
+    const box = { ...(layouts[s.layout] || layouts['center-focus']), ...(textOverride || {}) };
     const titleFont = (FONTS[comp.titleFontId] || font).family;
     const bodyFont = comp.bodyFont || "'Cormorant Garamond',Georgia,serif";
     const nameFont = bodyFont;
