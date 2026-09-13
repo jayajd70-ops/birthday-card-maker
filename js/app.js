@@ -660,7 +660,7 @@ btnExport.addEventListener('click', () => {
 });
 $('#ep-close').addEventListener('click', closeExportPopover);
 $('#ep-download').addEventListener('click', () => {
-  const fmt = document.querySelector('input[name=ep-fmt]:checked')?.value || 'png';
+  const fmt = document.querySelector('input[name=ep-fmt]:checked')?.value || 'jpg';
   closeExportPopover();
   exportCard(fmt);
 });
@@ -700,7 +700,7 @@ async function shareCard() {
 }
 $('#btn-share').addEventListener('click', shareCard);
 $('#btn-bottom-share').addEventListener('click', shareCard);
-$('#btn-bottom-download').addEventListener('click', () => exportCard('png'));
+$('#btn-bottom-download').addEventListener('click', () => exportCard('jpg'));
 
 /* ---- Bindings ---- */
 bindText('in-name', 'name');
