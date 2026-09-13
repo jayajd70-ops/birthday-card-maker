@@ -61,7 +61,7 @@ export const THEMES = {
   'midnight-silver': {
     id: 'midnight-silver', label: 'Midnight Silver',
     bg: '#09234a', bgAccent: '#03152f', ink: '#f5f7fb',
-    accent: '#e5e9f0', accent2: '#8fa8cb',
+    accent: '#e5e9f0', accent2: '#8fa8cb', messageInk: '#e6c98a',
     backgroundImage: 'assets/backgrounds/midnight-silver-v1.webp',
     swatch: 'linear-gradient(135deg,#061a38 0%,#173e73 58%,#d8dde7 100%)',
   },

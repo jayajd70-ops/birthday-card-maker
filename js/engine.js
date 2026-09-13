@@ -421,7 +421,7 @@ export class CardEngine {
         lines[maxLines - 1] = (last || '').trimEnd() + '…';
       }
       // Keep the message distinct from floral artwork and readable on every background.
-      ctx.font = `500 ${size}px ${bodyFont}`; ctx.fillStyle = theme.ink;
+      ctx.font = `500 ${size}px ${bodyFont}`; ctx.fillStyle = theme.messageInk || theme.ink;
       lines.forEach((line, i) => ctx.fillText(line, box.x, y + i * lineH));
     };
 
