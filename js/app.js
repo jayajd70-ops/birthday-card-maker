@@ -227,10 +227,12 @@ engine.onEmptyPhotoActivate = openPhotoPicker;
 
 /* ---- Photo adjust workspace ---- */
 const PHOTO_SLIDERS = [
+  { key: 'zoom',       label: 'Zoom',                min: 0.5,  max: 3,   step: 0.01, init: 1 },
   { key: 'offsetX',    label: 'Horizontal Position', min: -200, max: 200, step: 1,  init: 0 },
   { key: 'offsetY',    label: 'Vertical Position',   min: -200, max: 200, step: 1,  init: 0 },
-  { key: 'zoom',       label: 'Zoom',                min: 0.5,  max: 3,   step: 0.01, init: 1 },
   { key: 'rotation',   label: 'Rotation',            min: -180, max: 180, step: 1,  init: 0 },
+];
+const ENHANCEMENT_SLIDERS = [
   { key: 'brightness', label: 'Brightness',          min: 0.3,  max: 2,   step: 0.01, init: 1 },
   { key: 'contrast',   label: 'Contrast',            min: 0.3,  max: 2,   step: 0.01, init: 1 },
   { key: 'saturation', label: 'Saturation',          min: 0,    max: 2,   step: 0.01, init: 1 },
@@ -245,7 +247,7 @@ function buildPhotoControls(target) {
   const crop = document.createElement('div');
   crop.className = 'crop-tools';
   crop.innerHTML = `
-    <div class="crop-copy"><strong>Crop & position</strong><span>Drag the crop preview to choose what stays inside the card frame.</span></div>
+    <div class="crop-copy"><strong>Crop & position</strong><span>Use Zoom, Horizontal Position and Vertical Position below to match the card frame.</span></div>
     <div class="crop-buttons">
       <button type="button" class="btn" data-testid="adj-crop-left">Focus Left</button>
       <button type="button" class="btn" data-testid="adj-crop-center">Focus Centre</button>
@@ -269,13 +271,13 @@ function buildPhotoControls(target) {
   crop.querySelector('[data-testid=adj-show-full]').onclick = () => updateCrop({ fitMode: 'fit', offsetX: 0, offsetY: 0 }, true);
   crop.querySelector('[data-testid=adj-crop-frame]').onclick = () => updateCrop({ fitMode: 'fill' }, true);
   crop.querySelector('[data-testid=adj-reset-crop]').onclick = () => updateCrop({ offsetX: 0, offsetY: 0, zoom: 1, rotation: 0, fitMode: 'fill' }, true);
-  PHOTO_SLIDERS.forEach(s => {
+  const makeSlider = (s, parent = wrap) => {
     const c = document.createElement('div');
     c.className = 'ctrl';
     c.innerHTML = `<label for="adj-${s.key}">${s.label}</label>
       <input id="adj-${s.key}" type="range" min="${s.min}" max="${s.max}" step="${s.step}"
         aria-label="${s.label}" data-testid="adj-${s.key}" />`;
-    wrap.appendChild(c);
+    parent.appendChild(c);
     const inp = c.querySelector('input');
     inp.value = target.adj?.[s.key] ?? s.init;
     inp.addEventListener('input', () => {
@@ -284,7 +286,14 @@ function buildPhotoControls(target) {
       drawPhotoPreviews(target);
       scheduleAutosave();
     });
-  });
+  };
+  PHOTO_SLIDERS.forEach(makeSlider);
+  const enhancement = document.createElement('details');
+  enhancement.className = 'image-enhancement';
+  enhancement.innerHTML = '<summary>Image Enhancement <span>Brightness, contrast and more</span></summary><div class="enhancement-grid"></div>';
+  wrap.appendChild(enhancement);
+  const enhancementGrid = enhancement.querySelector('.enhancement-grid');
+  ENHANCEMENT_SLIDERS.forEach((slider) => makeSlider(slider, enhancementGrid));
   // flip + fit buttons
   const row = document.createElement('div');
   row.className = 'ctrl-row';
@@ -315,29 +324,47 @@ function drawPhotoPreviews(el) {
   // original: contain-fit
   const s1 = Math.min(360 / img.naturalWidth, 360 / img.naturalHeight);
   orig.drawImage(img, (360 - img.naturalWidth*s1)/2, (360 - img.naturalHeight*s1)/2, img.naturalWidth*s1, img.naturalHeight*s1);
-  // adjusted: preview via a temp element rendering
+  // Adjusted preview mirrors the real card's inner crop area and aspect ratio.
   const a = el.adj || defaultAdj();
+  const isCircle = el.shape === 'circle';
+  const framePad = 14, bottomPad = 26;
+  const actualW = isCircle ? Math.min(el.w, el.h) - 20 : el.w - framePad * 2;
+  const actualH = isCircle ? actualW : el.h - framePad - bottomPad;
+  const frameScale = Math.min(300 / actualW, 300 / actualH);
+  const cropW = actualW * frameScale, cropH = actualH * frameScale;
+  const cropCX = 180;
+  // A polaroid has a larger lower border, so its real image area sits slightly above centre.
+  const cropCY = isCircle ? 180 : 180 + (framePad - bottomPad) * frameScale / 2;
+  const cropX = cropCX - cropW / 2, cropY = cropCY - cropH / 2;
+  if (!isCircle) {
+    const outerW = el.w * frameScale, outerH = el.h * frameScale;
+    adj.fillStyle = '#fff';
+    adj.fillRect(180 - outerW / 2, 180 - outerH / 2, outerW, outerH);
+  }
   adj.save();
-  adj.translate(180, 180);
+  if (isCircle) { adj.beginPath(); adj.arc(180, 180, cropW / 2, 0, Math.PI * 2); adj.clip(); }
+  else { adj.beginPath(); adj.rect(cropX, cropY, cropW, cropH); adj.clip(); }
+  adj.fillStyle = '#efe6d9'; adj.fillRect(cropX, cropY, cropW, cropH);
+  adj.translate(cropCX, cropCY);
   adj.filter = `brightness(${a.brightness}) contrast(${a.contrast}) saturate(${a.saturation}) sepia(${a.warmth}) blur(${a.blur}px)`;
   adj.globalAlpha = a.opacity;
   const scale = a.zoom * (a.fitMode === 'fill'
-    ? Math.max(360 / img.naturalWidth, 360 / img.naturalHeight)
-    : Math.min(360 / img.naturalWidth, 360 / img.naturalHeight));
+    ? Math.max(actualW / img.naturalWidth, actualH / img.naturalHeight)
+    : Math.min(actualW / img.naturalWidth, actualH / img.naturalHeight)) * frameScale;
   const dw = img.naturalWidth * scale, dh = img.naturalHeight * scale;
-  adj.translate(a.offsetX || 0, a.offsetY || 0);
+  adj.translate((a.offsetX || 0) * frameScale, (a.offsetY || 0) * frameScale);
   adj.rotate((a.rotation || 0) * Math.PI / 180);
   adj.scale(a.flipX ? -1 : 1, a.flipY ? -1 : 1);
   adj.drawImage(img, -dw/2, -dh/2, dw, dh);
   adj.restore();
-  // The guide matches the card's actual circular or rectangular photo frame.
+  // The guide now exactly matches the image crop used by the card renderer.
   adj.save();
   adj.strokeStyle = 'rgba(230,201,138,.92)'; adj.lineWidth = 4;
   adj.setLineDash([8, 6]);
   if (el.shape === 'circle') {
-    adj.beginPath(); adj.arc(180, 180, 155, 0, Math.PI * 2); adj.stroke();
+    adj.beginPath(); adj.arc(cropCX, cropCY, cropW / 2, 0, Math.PI * 2); adj.stroke();
   } else {
-    adj.strokeRect(28, 28, 304, 304);
+    adj.strokeRect(cropX, cropY, cropW, cropH);
   }
   adj.restore();
 }
