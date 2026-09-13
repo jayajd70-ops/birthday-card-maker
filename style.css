@@ -184,6 +184,7 @@ button{cursor:pointer}
 .photo-actions{display:flex;flex-direction:column;gap:8px}
 .photo-help{margin:2px 2px 0;color:var(--muted);font-size:11px;line-height:1.4}
 .mobile-finish-actions{display:none}
+.mobile-image-settings{display:none}
 
 /* Stage */
 .stage-wrap{
@@ -383,6 +384,7 @@ button{cursor:pointer}
   .side.left .panel:first-child .preset-list{display:flex;gap:10px;overflow-x:auto;padding:0 1px 8px;scroll-snap-type:x proximity}
   .side.left .panel:first-child .preset-item{flex:0 0 118px;scroll-snap-align:start}
   .side.left .panel:first-child .preset-item .thumb{aspect-ratio:5/6.3}
+  .mobile-image-settings{display:block;margin:0 0 14px!important;padding:14px!important;background:var(--bg-1);border-bottom:1px solid var(--line)}
   .mobile-finish-actions{display:block;margin-top:8px!important;border-top:1px solid var(--line)}
   .finish-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .finish-actions .btn{min-height:48px;padding:10px 8px}

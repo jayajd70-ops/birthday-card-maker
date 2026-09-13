@@ -105,6 +105,7 @@ function refreshPhotoHelp() {
   $('#stage-add-photo').textContent = addLabel;
   $('#btn-adjust-photo').disabled = count === 0;
   $('#stage-image-settings').disabled = count === 0;
+  $('#btn-mobile-adjust-photo').disabled = count === 0;
   $('#photo-help').textContent = collage
     ? `${count}/3 photos added. You can select up to three at once.`
     : 'Upload one photo; switching layouts keeps it in the design.';
@@ -244,33 +245,6 @@ const ENHANCEMENT_SLIDERS = [
 function buildPhotoControls(target) {
   const wrap = $('#photo-controls');
   wrap.innerHTML = '';
-  const crop = document.createElement('div');
-  crop.className = 'crop-tools';
-  crop.innerHTML = `
-    <div class="crop-copy"><strong>Crop & position</strong><span>Use Zoom, Horizontal Position and Vertical Position below to match the card frame.</span></div>
-    <div class="crop-buttons">
-      <button type="button" class="btn" data-testid="adj-crop-left">Focus Left</button>
-      <button type="button" class="btn" data-testid="adj-crop-center">Focus Centre</button>
-      <button type="button" class="btn" data-testid="adj-crop-right">Focus Right</button>
-      <button type="button" class="btn" data-testid="adj-show-full">Show Full Photo</button>
-      <button type="button" class="btn" data-testid="adj-crop-frame">Crop to Frame</button>
-      <button type="button" class="btn ghost" data-testid="adj-reset-crop">Reset Crop</button>
-    </div>
-  `;
-  wrap.appendChild(crop);
-  const updateCrop = (patch, rebuild = false) => {
-    target.adj = { ...(target.adj || defaultAdj()), ...patch };
-    engine.requestRender();
-    if (rebuild) buildPhotoControls(target);
-    drawPhotoPreviews(target);
-    scheduleAutosave();
-  };
-  crop.querySelector('[data-testid=adj-crop-left]').onclick = () => updateCrop({ fitMode: 'fill', offsetX: 90, offsetY: 0 });
-  crop.querySelector('[data-testid=adj-crop-center]').onclick = () => updateCrop({ fitMode: 'fill', offsetX: 0, offsetY: 0 });
-  crop.querySelector('[data-testid=adj-crop-right]').onclick = () => updateCrop({ fitMode: 'fill', offsetX: -90, offsetY: 0 });
-  crop.querySelector('[data-testid=adj-show-full]').onclick = () => updateCrop({ fitMode: 'fit', offsetX: 0, offsetY: 0 }, true);
-  crop.querySelector('[data-testid=adj-crop-frame]').onclick = () => updateCrop({ fitMode: 'fill' }, true);
-  crop.querySelector('[data-testid=adj-reset-crop]').onclick = () => updateCrop({ offsetX: 0, offsetY: 0, zoom: 1, rotation: 0, fitMode: 'fill' }, true);
   const makeSlider = (s, parent = wrap) => {
     const c = document.createElement('div');
     c.className = 'ctrl';
@@ -413,6 +387,7 @@ $('#btn-adjust-photo').addEventListener('click', () => {
   openPhotoAdjust(el);
 });
 $('#stage-image-settings').addEventListener('click', () => $('#btn-adjust-photo').click());
+$('#btn-mobile-adjust-photo').addEventListener('click', () => $('#btn-adjust-photo').click());
 engine.onPhotoActivate = openPhotoAdjust;
 $('#photo-close').addEventListener('click', () => {
   const m = $('#modal-photo'); m.hidden = true; m.setAttribute('aria-hidden','true');

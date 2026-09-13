@@ -792,7 +792,7 @@ export class CardEngine {
         dragging = { kind: 'move', el, startX: p.x, startY: p.y, ox: el.x, oy: el.y, moved: false };
         // Double-tap detection (works for mouse, pen and touch)
         const now = performance.now();
-        if (lastTap.id === el.id && now - lastTap.t < 320) {
+        if (lastTap.id === el.id && now - lastTap.t < 500) {
           lastTap = { id: null, t: 0 };
           dragging = null;
           activatePhoto(el);
@@ -846,6 +846,11 @@ export class CardEngine {
     };
     canvas.addEventListener('pointerup', end);
     canvas.addEventListener('pointercancel', end);
+    canvas.addEventListener('dblclick', (e) => {
+      const p = toLogical(e);
+      const el = this.hitTest(p.x, p.y);
+      if (el?.type === 'photo') activatePhoto(el);
+    });
 
     // Handle events on handles overlay
     this.handles.addEventListener('pointerdown', (e) => {
