@@ -99,7 +99,11 @@ function refreshLayoutActive() {
 function refreshPhotoHelp() {
   const collage = engine.state.layout === 'collage';
   const count = engine.state.elements.filter(e => e.type === 'photo').length;
-  $('#photo-input-label').textContent = collage ? 'Add Photos' : (count ? 'Replace Photo' : 'Add Photo');
+  const addLabel = collage ? 'Add Photos' : (count ? 'Replace Photo' : 'Add Photo');
+  $('#photo-input-label').textContent = addLabel;
+  $('#stage-add-photo').textContent = addLabel;
+  $('#btn-adjust-photo').disabled = count === 0;
+  $('#stage-image-settings').disabled = count === 0;
   $('#photo-help').textContent = collage
     ? `${count}/3 photos added. You can select up to three at once.`
     : 'Upload one photo; switching layouts keeps it in the design.';
@@ -173,12 +177,13 @@ async function handlePhotoUpload(file) {
   if (!file || !file.type.startsWith('image/')) { toast('Please choose an image file'); return; }
   try {
     const id = 'ph_' + Math.random().toString(36).slice(2, 10);
-    await store.savePhotoBlob(id, file);
     const url = URL.createObjectURL(file);
     engine.attachPhoto(id, url);
-    engine.addPhoto(id);
+    const photo = engine.addPhoto(id);
     dismissWelcome();
     scheduleAutosave();
+    store.savePhotoBlob(id, file).catch(error => console.warn('Photo persistence unavailable', error));
+    return photo;
   } catch (e) {
     console.error(e);
     toast('Could not add photo');
@@ -190,11 +195,27 @@ $('#photo-input').addEventListener('change', async (e) => {
   const existing = engine.state.elements.filter(el => el.type === 'photo').length;
   const maxFiles = engine.state.layout === 'collage' ? Math.max(1, 3 - existing) : 1;
   const selected = files.slice(0, maxFiles);
-  for (const file of selected) await handlePhotoUpload(file);
-  if (selected.length) toast(selected.length > 1 ? `${selected.length} photos added` : 'Photo added');
+  const added = [];
+  for (const file of selected) {
+    const photo = await handlePhotoUpload(file);
+    if (photo) added.push(photo);
+  }
+  if (added.length) {
+    toast(added.length > 1 ? `${added.length} photos added` : 'Photo added');
+    openPhotoAdjust(added[0]);
+  }
   refreshPhotoHelp();
   e.target.value = '';
 });
+
+function openPhotoPicker() {
+  const input = $('#photo-input');
+  input.value = '';
+  input.click();
+}
+$('#photo-input-label').addEventListener('click', openPhotoPicker);
+$('#stage-add-photo').addEventListener('click', openPhotoPicker);
+engine.onEmptyPhotoActivate = openPhotoPicker;
 
 /* ---- Photo adjust workspace ---- */
 const PHOTO_SLIDERS = [
@@ -289,6 +310,7 @@ $('#btn-adjust-photo').addEventListener('click', () => {
   if (!el) { toast('Add a photo first'); return; }
   openPhotoAdjust(el);
 });
+$('#stage-image-settings').addEventListener('click', () => $('#btn-adjust-photo').click());
 engine.onPhotoActivate = openPhotoAdjust;
 $('#photo-close').addEventListener('click', () => {
   const m = $('#modal-photo'); m.hidden = true; m.setAttribute('aria-hidden','true');
@@ -342,6 +364,7 @@ function renderInspector() {
   const box = $('#selected-inspector');
   if (!el) { box.innerHTML = `<div class="empty">Select an element on the card to edit its properties.</div>`; return; }
   box.innerHTML = `
+    ${el.type === 'photo' ? '<button class="btn primary block" data-testid="sel-image-settings" type="button">Image Settings</button>' : ''}
     <div class="row">
       <button class="btn" data-testid="sel-forward" type="button">Forward</button>
       <button class="btn" data-testid="sel-back" type="button">Back</button>
@@ -364,6 +387,8 @@ function renderInspector() {
     </div>
   `;
   box.querySelector('[data-testid=sel-forward]').onclick = () => engine.bringForward(1);
+  const imageSettings = box.querySelector('[data-testid=sel-image-settings]');
+  if (imageSettings) imageSettings.onclick = () => openPhotoAdjust(el);
   box.querySelector('[data-testid=sel-back]').onclick = () => engine.bringForward(-1);
   box.querySelector('[data-testid=sel-duplicate]').onclick = () => engine.duplicateSelected();
   box.querySelector('[data-testid=sel-delete]').onclick = () => engine.removeSelected();
@@ -631,7 +656,8 @@ const PRESETS = [
     content: { name: 'Ananya', age: '30', message: 'Wishing you a day filled with love, happiness and all the beautiful moments you deserve.', sender: 'With Love, Team', secondary: '' },
     composition: {
       photoShape: 'polaroid', photoSlot: { x: 250, y: 250, w: 210, h: 240, rotation: -1 },
-      titleSize: 58, bodySize: 18, text: { nameY: 382, bodyY: 428, bodyBottom: 555, footerY: 585 },
+      titleX: 215, titleWidth: 330, titleSize: 53, bodySize: 18, senderSize: 23,
+      text: { nameY: 382, bodyY: 428, bodyBottom: 555, footerY: 600 },
     },
     elements: [],
   },

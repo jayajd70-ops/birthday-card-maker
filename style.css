@@ -23,6 +23,10 @@
   --bold:'Poppins', 'Helvetica Neue', Arial, sans-serif;
 }
 *{box-sizing:border-box}
+.visually-hidden{
+  position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;
+  overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important
+}
 html,body{margin:0;padding:0;background:var(--bg-0);color:var(--ink);font-family:var(--sans);height:100%}
 button,input,textarea,select{font:inherit;color:inherit}
 button{cursor:pointer}
@@ -51,6 +55,7 @@ button{cursor:pointer}
 }
 .btn:hover{background:#241d19;border-color:#4a3c2f}
 .btn:active{transform:translateY(1px)}
+.btn:disabled{opacity:.45;cursor:not-allowed;filter:none;transform:none}
 .btn.ghost{background:transparent}
 .btn.primary{background:linear-gradient(#d9b676,#a97f36);color:#231a10;border-color:#8a6529;font-weight:700}
 .btn.primary:hover{filter:brightness(1.05)}
@@ -181,10 +186,12 @@ button{cursor:pointer}
 
 /* Stage */
 .stage-wrap{
-  display:flex;align-items:center;justify-content:center;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
   background:radial-gradient(1200px 800px at 50% 30%, #1c1815 0%, #0d0a08 70%);
   padding:24px;overflow:auto;position:relative;
 }
+.stage-photo-tools{display:flex;gap:8px;margin-top:12px;justify-content:center;flex-wrap:wrap}
+.stage-photo-tools .btn{min-width:132px;box-shadow:0 6px 18px rgba(0,0,0,.28)}
 .stage{
   position:relative;width:min(500px, 92%);aspect-ratio:5/7;
   background:#111;border-radius:18px;overflow:visible;

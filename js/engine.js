@@ -232,6 +232,19 @@ export class CardEngine {
     }
   }
 
+  emptyPhotoSlotAt(x, y) {
+    const photos = this.state.elements.filter(e => e.type === 'photo' && !e.hidden);
+    const slots = PHOTO_SLOTS[this.state.layout] || PHOTO_SLOTS['center-focus'];
+    const needed = this.state.layout === 'collage' ? slots.length : 1;
+    for (let i = photos.length; i < needed; i++) {
+      const base = slots[i];
+      const override = this.state.composition?.photoSlots?.[i] || (i === 0 ? this.state.composition?.photoSlot : null) || {};
+      const slot = { ...base, ...override };
+      if (pointInRotatedRect(x, y, slot.x, slot.y, slot.w, slot.h, slot.rotation || 0)) return i;
+    }
+    return -1;
+  }
+
   drawElement(ctx, el) {
     if (el.hidden) return;
     ctx.save();
@@ -399,20 +412,22 @@ export class CardEngine {
       lines.forEach((line, i) => ctx.fillText(line, box.x, y + i * lineH));
     };
 
+    const titleX = comp.titleX ?? 250;
+    const titleWidth = comp.titleWidth ?? 410;
     ctx.textAlign = 'center'; ctx.fillStyle = theme.accent;
     if (comp.titleLines?.length) {
       let lineY = box.titleY;
       for (const line of comp.titleLines) {
         const family = (FONTS[line.fontId] || font).family;
-        const size = fitSingle(line.text, family, line.weight || '700', 'normal', line.size || 42, 22, 410);
+        const size = fitSingle(line.text, family, line.weight || '700', 'normal', line.size || 42, 22, titleWidth);
         ctx.font = `normal ${line.weight || '700'} ${size}px ${family}`;
-        ctx.fillText(line.text, 250, lineY);
+        ctx.fillText(line.text, titleX, lineY);
         lineY += line.advance || size * .82;
       }
     } else {
-      const titleSize = fitSingle('Happy Birthday', titleFont, '700', 'normal', comp.titleSize || 55, 30, 410);
+      const titleSize = fitSingle('Happy Birthday', titleFont, '700', 'normal', comp.titleSize || 55, 30, titleWidth);
       ctx.font = `normal 700 ${titleSize}px ${titleFont}`;
-      ctx.fillText('Happy Birthday', 250, box.titleY);
+      ctx.fillText('Happy Birthday', titleX, box.titleY);
     }
 
     ctx.textAlign = box.align;
@@ -442,8 +457,18 @@ export class CardEngine {
       ctx.fillText(s.content.secondary, footerX, footerY - 42); ctx.globalAlpha = 1;
     }
     if (s.content.sender) {
-      const size = fitSingle(s.content.sender, nameFont, '600', 'italic', 20, 12, footerWidth);
-      ctx.font = `italic 600 ${size}px ${nameFont}`; ctx.fillStyle = theme.accent;
+      const size = fitSingle(s.content.sender, nameFont, '700', 'italic', comp.senderSize || 22, 13, footerWidth);
+      ctx.font = `italic 700 ${size}px ${nameFont}`;
+      const senderWidth = ctx.measureText(s.content.sender).width;
+      const senderLeft = footerAlign === 'left' ? footerX - 9 : footerAlign === 'right' ? footerX - senderWidth - 9 : footerX - senderWidth / 2 - 9;
+      ctx.save();
+      ctx.fillStyle = theme.bg + 'd9';
+      ctx.shadowColor = 'rgba(0,0,0,.14)'; ctx.shadowBlur = 8;
+      ctx.beginPath(); ctx.roundRect(senderLeft, footerY - 5, senderWidth + 18, size + 12, 8); ctx.fill();
+      ctx.restore();
+      ctx.lineWidth = Math.max(3, size * .18); ctx.lineJoin = 'round'; ctx.strokeStyle = theme.bg + 'e6';
+      ctx.strokeText(s.content.sender, footerX, footerY);
+      ctx.fillStyle = theme.accent;
       ctx.fillText(s.content.sender, footerX, footerY);
     }
   }
@@ -642,22 +667,58 @@ export class CardEngine {
   }
 
   resolveCollisions(el) {
-    // Simple heuristic: if el would overlap a photo or text zones, try alternate anchors then scale down.
-    const anchors = ['top-right','top-left','top-center','bottom-right','bottom-left','bottom-center','center-left','center-right'];
-    const overlaps = (a, b) => Math.abs(a.x - b.x) < (a.w + b.w) / 2 - 8 && Math.abs(a.y - b.y) < (a.h + b.h) / 2 - 8;
-    const photos = this.state.elements.filter(e => e.type === 'photo');
-    for (let i = 0; i < anchors.length; i++) {
-      let bad = false;
-      for (const p of photos) if (overlaps(el, p)) { bad = true; break; }
-      if (!bad) return;
-      const pos = placeAtAnchor(anchors[i], el.w, el.h);
-      el.x = pos.x; el.y = pos.y;
+    const overlaps = (a, b, gap = 8) =>
+      Math.abs(a.x - b.x) < (a.w + b.w) / 2 + gap &&
+      Math.abs(a.y - b.y) < (a.h + b.h) / 2 + gap;
+    const comp = this.state.composition || {};
+    const defaults = {
+      'center-focus': { x: 250, width: 370, nameY: 372, bodyBottom: 584, footerY: 646 },
+      collage: { x: 250, width: 390, nameY: 405, bodyBottom: 580, footerY: 646 },
+      'left-aligned': { x: 135, width: 180, nameY: 178, bodyBottom: 510, footerY: 610 },
+      'right-aligned': { x: 365, width: 180, nameY: 178, bodyBottom: 510, footerY: 610 },
+    };
+    const text = { ...(defaults[this.state.layout] || defaults['center-focus']), ...(comp.text || {}) };
+    const titleX = comp.titleX ?? 250;
+    const titleWidth = comp.titleWidth ?? 410;
+    const footerX = text.footerX ?? text.x;
+    const footerWidth = text.footerWidth ?? text.width;
+    const obstacles = [
+      ...this.state.elements.filter(e => e.type === 'photo' && !e.hidden),
+      { x: titleX, y: 72, w: titleWidth, h: 82 },
+      { x: text.x, y: (text.nameY + text.bodyBottom) / 2, w: text.width, h: text.bodyBottom - text.nameY + 30 },
+      { x: footerX, y: text.footerY - 12, w: footerWidth, h: 86 },
+    ];
+    const clear = candidate => !obstacles.some(obstacle => overlaps(candidate, obstacle));
+    if (clear(el)) return;
+
+    const originalW = el.w;
+    const originalH = el.h;
+    const scales = [1, .82, .68, .55, .45];
+    const relativePoints = [
+      [.88, .20], [.12, .20], [.90, .34], [.10, .34],
+      [.90, .52], [.10, .52], [.88, .76], [.12, .76],
+      [.50, .90], [.50, .16],
+    ];
+    for (const scale of scales) {
+      const w = Math.max(40, originalW * scale);
+      const h = Math.max(40, originalH * scale);
+      for (const [rx, ry] of relativePoints) {
+        const candidate = {
+          x: Math.max(20 + w / 2, Math.min(CANVAS_W - 20 - w / 2, CANVAS_W * rx)),
+          y: Math.max(20 + h / 2, Math.min(CANVAS_H - 20 - h / 2, CANVAS_H * ry)),
+          w, h,
+        };
+        if (!clear(candidate)) continue;
+        Object.assign(el, candidate);
+        return;
+      }
     }
-    // Still colliding: scale down to 70% and re-inset
-    el.w = Math.max(40, el.w * 0.7);
-    el.h = Math.max(40, el.h * 0.7);
-    const pos = placeAtAnchor('bottom-right', el.w, el.h);
-    el.x = pos.x; el.y = pos.y;
+
+    // Dense cards keep the decoration small and inside a safe corner.
+    el.w = Math.max(40, originalW * .4);
+    el.h = Math.max(40, originalH * .4);
+    el.x = CANVAS_W - 20 - el.w / 2;
+    el.y = 20 + el.h / 2;
   }
 
   loadAsset(path) {
@@ -721,9 +782,11 @@ export class CardEngine {
           lastTap = { id: el.id, t: now };
         }
       } else {
+        const emptySlot = this.emptyPhotoSlotAt(p.x, p.y);
         this.select(null);
         dragging = null;
         lastTap = { id: null, t: 0 };
+        if (emptySlot >= 0 && this.onEmptyPhotoActivate) this.onEmptyPhotoActivate(emptySlot);
       }
     });
     canvas.addEventListener('pointermove', (e) => {
@@ -732,10 +795,13 @@ export class CardEngine {
           const p = toLogical(e);
           const hit = this.hitTest(p.x, p.y);
           const hoverId = hit && hit.type === 'photo' ? hit.id : null;
+          const emptySlot = !hit && this.emptyPhotoSlotAt(p.x, p.y) >= 0;
           if (hoverId !== this.hoverPhotoId) {
             this.hoverPhotoId = hoverId;
-            canvas.style.cursor = hoverId ? 'pointer' : (hit ? 'move' : 'default');
+            canvas.style.cursor = hoverId || emptySlot ? 'pointer' : (hit ? 'move' : 'default');
             this.updateHandles();
+          } else if (!hoverId) {
+            canvas.style.cursor = emptySlot ? 'pointer' : (hit ? 'move' : 'default');
           }
         }
         return;

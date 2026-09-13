@@ -87,9 +87,9 @@
         <section class="panel">
           <h3>Photo</h3>
           <div class="photo-actions">
-            <label class="btn block" id="photo-input-label" for="photo-input" data-testid="btn-add-photo">Add Photo</label>
-            <input type="file" id="photo-input" accept="image/*" multiple hidden data-testid="input-photo" />
-            <button class="btn block" id="btn-adjust-photo" type="button" data-testid="btn-adjust-photo">Adjust Photo</button>
+            <button class="btn block" id="photo-input-label" type="button" data-testid="btn-add-photo">Add Photo</button>
+            <input class="visually-hidden" type="file" id="photo-input" accept="image/*" multiple data-testid="input-photo" />
+            <button class="btn block" id="btn-adjust-photo" type="button" data-testid="btn-adjust-photo" disabled>Image Settings</button>
             <p class="photo-help" id="photo-help">Upload one photo, then choose how it is placed.</p>
           </div>
         </section>
@@ -106,6 +106,10 @@
               <button class="btn primary lg" id="btn-start" type="button" data-testid="btn-create-card">Create Birthday Card</button>
             </div>
           </div>
+        </div>
+        <div class="stage-photo-tools" aria-label="Photo tools">
+          <button class="btn primary" id="stage-add-photo" type="button" data-testid="btn-stage-add-photo">Add Photo</button>
+          <button class="btn" id="stage-image-settings" type="button" data-testid="btn-stage-image-settings" disabled>Image Settings</button>
         </div>
       </section>
 
