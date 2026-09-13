@@ -379,7 +379,7 @@ export class CardEngine {
     const s = this.state;
     const comp = s.composition || {};
     const layouts = {
-      'center-focus': { titleY: 38, x: 250, width: 370, align: 'center', nameY: 372, bodyY: 430, bodyBottom: 584, footerY: 646 },
+      'center-focus': { titleY: 38, x: 250, width: 370, align: 'center', nameY: 372, bodyY: 430, bodyBottom: 520, footerY: 555 },
       'left-aligned': { titleY: 38, x: 278, width: 168, align: 'left', nameY: 178, bodyY: 242, bodyBottom: 510, footerY: 610 },
       'right-aligned': { titleY: 38, x: 222, width: 168, align: 'right', nameY: 178, bodyY: 242, bodyBottom: 510, footerY: 610 },
       collage: { titleY: 36, x: 250, width: 390, align: 'center', nameY: 405, bodyY: 458, bodyBottom: 580, footerY: 646 },
@@ -408,6 +408,13 @@ export class CardEngine {
         if (lines.length * lineH <= bottom - y) break;
         size -= 1;
       }
+      const maxLines = Math.max(1, Math.floor((bottom - y) / lineH));
+      if (lines.length > maxLines) {
+        lines = lines.slice(0, maxLines);
+        let last = lines[maxLines - 1];
+        while (last && ctx.measureText(last + '…').width > box.width) last = last.slice(0, -1);
+        lines[maxLines - 1] = (last || '').trimEnd() + '…';
+      }
       ctx.font = `500 ${size}px ${bodyFont}`; ctx.fillStyle = theme.ink;
       lines.forEach((line, i) => ctx.fillText(line, box.x, y + i * lineH));
     };
@@ -433,7 +440,7 @@ export class CardEngine {
     ctx.textAlign = box.align;
     let nameBottom = box.nameY;
     if (s.content.name) {
-      const text = `Dear ${s.content.name}`;
+      const text = s.content.name;
       const size = fitSingle(text, nameFont, '500', 'normal', comp.nameSize || 29, 16);
       ctx.font = `normal 500 ${size}px ${nameFont}`; ctx.fillStyle = theme.accent;
       ctx.fillText(text, box.x, box.nameY); nameBottom = box.nameY + size + 7;
@@ -571,6 +578,10 @@ export class CardEngine {
   }
 
   setPhotoLayout(layout) {
+    if (layout === this.state.layout) {
+      this.requestRender();
+      return;
+    }
     const photos = this.state.elements.filter(e => e.type === 'photo');
     const other = this.state.elements.filter(e => e.type !== 'photo');
     this.state.layout = layout;
@@ -672,7 +683,7 @@ export class CardEngine {
       Math.abs(a.y - b.y) < (a.h + b.h) / 2 + gap;
     const comp = this.state.composition || {};
     const defaults = {
-      'center-focus': { x: 250, width: 370, nameY: 372, bodyBottom: 584, footerY: 646 },
+      'center-focus': { x: 250, width: 370, nameY: 372, bodyBottom: 520, footerY: 555 },
       collage: { x: 250, width: 390, nameY: 405, bodyBottom: 580, footerY: 646 },
       'left-aligned': { x: 135, width: 180, nameY: 178, bodyBottom: 510, footerY: 610 },
       'right-aligned': { x: 365, width: 180, nameY: 178, bodyBottom: 510, footerY: 610 },
