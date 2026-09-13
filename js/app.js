@@ -105,7 +105,8 @@ function refreshPhotoHelp() {
   $('#stage-add-photo').textContent = addLabel;
   $('#btn-adjust-photo').disabled = count === 0;
   $('#stage-image-settings').disabled = count === 0;
-  $('#btn-mobile-adjust-photo').disabled = count === 0;
+  const mobileAdjust = $('#btn-mobile-adjust-photo');
+  if (mobileAdjust) mobileAdjust.disabled = count === 0;
   $('#photo-help').textContent = collage
     ? `${count}/3 photos added. You can select up to three at once.`
     : 'Upload one photo; switching layouts keeps it in the design.';
@@ -380,14 +381,15 @@ function openPhotoAdjust(el) {
   const m = $('#modal-photo'); m.hidden = false; m.setAttribute('aria-hidden','false');
 }
 
-$('#btn-adjust-photo').addEventListener('click', () => {
+function openSelectedPhotoAdjust() {
   const el = engine.state.elements.find(e => e.type === 'photo' && (e.id === engine.state.selectedId)) ||
              engine.state.elements.find(e => e.type === 'photo');
   if (!el) { toast('Add a photo first'); return; }
   openPhotoAdjust(el);
-});
-$('#stage-image-settings').addEventListener('click', () => $('#btn-adjust-photo').click());
-$('#btn-mobile-adjust-photo').addEventListener('click', () => $('#btn-adjust-photo').click());
+}
+$('#btn-adjust-photo').addEventListener('click', openSelectedPhotoAdjust);
+$('#stage-image-settings').addEventListener('click', openSelectedPhotoAdjust);
+$('#btn-mobile-adjust-photo')?.addEventListener('click', openSelectedPhotoAdjust);
 engine.onPhotoActivate = openPhotoAdjust;
 $('#photo-close').addEventListener('click', () => {
   const m = $('#modal-photo'); m.hidden = true; m.setAttribute('aria-hidden','true');
