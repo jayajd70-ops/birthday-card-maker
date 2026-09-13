@@ -152,6 +152,10 @@ export class CardEngine {
     grad.addColorStop(1, theme.bgAccent);
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+    if (theme.backgroundImage) {
+      const background = this.assetCache.get(theme.backgroundImage) || this.loadAsset(theme.backgroundImage);
+      if (background.complete && background.naturalWidth) ctx.drawImage(background, 0, 0, CANVAS_W, CANVAS_H);
+    }
 
     // Subtle inner frame line
     ctx.strokeStyle = theme.accent + '55';
@@ -177,6 +181,7 @@ export class CardEngine {
   }
 
   drawThemeDetails(ctx, theme) {
+    if (theme.backgroundImage) return;
     ctx.save();
     ctx.globalAlpha = 0.16;
     if (this.state.themeId === 'celebration-blue') {
@@ -209,16 +214,18 @@ export class CardEngine {
       const override = this.state.composition?.photoSlots?.[i] || (i === 0 ? this.state.composition?.photoSlot : null) || {};
       const slot = { ...base, ...override, shape: this.state.composition?.photoShape || override.shape || base.shape };
       ctx.save(); ctx.translate(slot.x, slot.y); ctx.rotate(slot.rotation * Math.PI / 180);
-      ctx.setLineDash([7, 6]); ctx.lineWidth = 2;
-      ctx.strokeStyle = theme.accent + 'aa';
-      ctx.fillStyle = theme.bg + 'aa';
+      ctx.shadowColor = 'rgba(0,0,0,.2)'; ctx.shadowBlur = 12; ctx.shadowOffsetY = 5;
       if (slot.shape === 'circle') {
-        ctx.beginPath(); ctx.arc(0, 0, slot.w / 2, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0, 0, slot.w / 2, 0, Math.PI * 2); ctx.fill();
+        ctx.shadowColor = 'transparent'; ctx.fillStyle = theme.bg;
+        ctx.beginPath(); ctx.arc(0, 0, slot.w / 2 - 9, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = theme.accent; ctx.lineWidth = 3; ctx.stroke();
       } else {
-        ctx.fillRect(-slot.w / 2, -slot.h / 2, slot.w, slot.h);
-        ctx.strokeRect(-slot.w / 2, -slot.h / 2, slot.w, slot.h);
+        ctx.fillStyle = '#fff'; ctx.fillRect(-slot.w / 2, -slot.h / 2, slot.w, slot.h);
+        ctx.shadowColor = 'transparent'; ctx.fillStyle = theme.bg;
+        ctx.fillRect(-slot.w / 2 + 11, -slot.h / 2 + 11, slot.w - 22, slot.h - 34);
       }
-      ctx.setLineDash([]); ctx.fillStyle = theme.ink; ctx.globalAlpha = 0.7;
+      ctx.fillStyle = theme.ink; ctx.globalAlpha = 0.62;
       ctx.font = '600 13px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(this.state.layout === 'collage' ? `Photo ${i + 1}` : 'Add a photo', 0, 0);
       ctx.restore();
@@ -392,10 +399,21 @@ export class CardEngine {
       lines.forEach((line, i) => ctx.fillText(line, box.x, y + i * lineH));
     };
 
-    ctx.textAlign = 'center';
-    const titleSize = fitSingle('Happy Birthday', titleFont, '700', 'normal', comp.titleSize || 55, 30, 410);
-    ctx.font = `normal 700 ${titleSize}px ${titleFont}`; ctx.fillStyle = theme.accent;
-    ctx.fillText('Happy Birthday', 250, box.titleY);
+    ctx.textAlign = 'center'; ctx.fillStyle = theme.accent;
+    if (comp.titleLines?.length) {
+      let lineY = box.titleY;
+      for (const line of comp.titleLines) {
+        const family = (FONTS[line.fontId] || font).family;
+        const size = fitSingle(line.text, family, line.weight || '700', 'normal', line.size || 42, 22, 410);
+        ctx.font = `normal ${line.weight || '700'} ${size}px ${family}`;
+        ctx.fillText(line.text, 250, lineY);
+        lineY += line.advance || size * .82;
+      }
+    } else {
+      const titleSize = fitSingle('Happy Birthday', titleFont, '700', 'normal', comp.titleSize || 55, 30, 410);
+      ctx.font = `normal 700 ${titleSize}px ${titleFont}`;
+      ctx.fillText('Happy Birthday', 250, box.titleY);
+    }
 
     ctx.textAlign = box.align;
     let nameBottom = box.nameY;
@@ -414,15 +432,19 @@ export class CardEngine {
     if (s.content.message) drawWrapped(s.content.message, Math.max(box.bodyY, nameBottom + 6), box.bodyBottom, comp.bodySize || 19);
 
     let footerY = box.footerY;
+    const footerX = box.footerX ?? box.x;
+    const footerWidth = box.footerWidth ?? box.width;
+    const footerAlign = box.footerAlign || box.align;
+    ctx.textAlign = footerAlign;
     if (s.content.secondary) {
-      const size = fitSingle(s.content.secondary, bodyFont, '500', 'italic', 15, 11);
+      const size = fitSingle(s.content.secondary, bodyFont, '500', 'italic', 15, 11, footerWidth);
       ctx.font = `italic 500 ${size}px ${bodyFont}`; ctx.fillStyle = theme.ink; ctx.globalAlpha = 0.78;
-      ctx.fillText(s.content.secondary, box.x, footerY - 42); ctx.globalAlpha = 1;
+      ctx.fillText(s.content.secondary, footerX, footerY - 42); ctx.globalAlpha = 1;
     }
     if (s.content.sender) {
-      const size = fitSingle(s.content.sender, nameFont, '600', 'italic', 20, 12);
+      const size = fitSingle(s.content.sender, nameFont, '600', 'italic', 20, 12, footerWidth);
       ctx.font = `italic 600 ${size}px ${nameFont}`; ctx.fillStyle = theme.accent;
-      ctx.fillText(s.content.sender, box.x, footerY);
+      ctx.fillText(s.content.sender, footerX, footerY);
     }
   }
 

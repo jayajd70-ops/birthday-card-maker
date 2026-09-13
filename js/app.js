@@ -30,6 +30,7 @@ function buildThemes() {
   const grid = $('#theme-grid');
   grid.innerHTML = '';
   Object.values(THEMES).forEach(t => {
+    if (t.backgroundImage) engine.loadAsset(t.backgroundImage);
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'theme-swatch';
@@ -129,6 +130,7 @@ function buildDecorations() {
 }
 
 function setTheme(id) {
+  if (THEMES[id]?.backgroundImage) engine.loadAsset(THEMES[id].backgroundImage);
   engine.setState({ themeId: id });
   refreshThemeActive();
   buildDecorations();
@@ -622,15 +624,6 @@ document.addEventListener('keydown', (e) => {
 });
 
 /* ---- Card Presets ---- */
-function placedDecoration(id, x, y, w, h, rotation = 0, opacity = 1, layer = 'decoration') {
-  const dec = DECORATIONS.find(d => d.id === id);
-  return dec ? {
-    type: layer === 'bg-decoration' ? 'bg-decoration' : 'decoration', layer,
-    path: dec.path, name: dec.name, x, y, w, h, rotation, opacity,
-    hidden: false, locked: false,
-  } : null;
-}
-
 const PRESETS = [
   {
     id: 'p-elegant-gold', label: 'Elegant Gold',
@@ -638,54 +631,42 @@ const PRESETS = [
     content: { name: 'Ananya', age: '30', message: 'Wishing you a day filled with love, happiness and all the beautiful moments you deserve.', sender: 'With Love, Team', secondary: '' },
     composition: {
       photoShape: 'polaroid', photoSlot: { x: 250, y: 250, w: 210, h: 240, rotation: -1 },
-      titleSize: 58, bodySize: 18, text: { nameY: 382, bodyY: 428, bodyBottom: 570, footerY: 642 },
+      titleSize: 58, bodySize: 18, text: { nameY: 382, bodyY: 428, bodyBottom: 555, footerY: 585 },
     },
-    elements: [
-      placedDecoration('balloon-gold', 53, 245, 92, 150, -5),
-      placedDecoration('balloon-gold', 447, 224, 80, 132, 7),
-      placedDecoration('peony-white', 70, 632, 118, 118, -10),
-      placedDecoration('gift-box-gold', 432, 625, 112, 112, 4),
-    ].filter(Boolean),
+    elements: [],
   },
   {
     id: 'p-romantic-pink', label: 'Romantic Pink',
     themeId: 'romantic-pink', fontId: 'script', layout: 'left-aligned',
     content: { name: 'Priya', age: '', message: 'May your special day be as beautiful, kind and amazing as you are. Stay happy, stay blessed, keep shining!', sender: 'With Love, Your Friends', secondary: 'Happiness looks good on you!' },
-    composition: { titleSize: 57, bodySize: 17, text: { footerY: 620 } },
-    elements: [
-      placedDecoration('ribbon-velvet-pink', 85, 92, 120, 68, -8, .9),
-      placedDecoration('rose-bouquet-pink', 452, 475, 92, 110, 7),
-      placedDecoration('cake-studio', 88, 625, 126, 126, 0),
-    ].filter(Boolean),
+    composition: {
+      titleSize: 57, bodySize: 17,
+      photoSlot: { x: 142, y: 286, w: 194, h: 232, rotation: -2 },
+      text: { x: 135, width: 180, align: 'center', nameY: 425, bodyY: 470, bodyBottom: 580, footerY: 620 },
+    },
+    elements: [],
   },
   {
     id: 'p-celebration-blue', label: 'Celebration Blue',
     themeId: 'celebration-blue', fontId: 'bold', layout: 'center-focus',
     content: { name: 'Rohan', age: '', message: 'Wishing you success, happiness, good health and countless joyful moments today and always!', sender: 'Enjoy your day!', secondary: 'To an amazing person' },
     composition: {
-      titleSize: 44, nameFontId: 'script', bodyFont: "'Nunito',system-ui,sans-serif", bodySize: 16,
+      titleLines: [
+        { text: 'HAPPY', fontId: 'bold', size: 25, advance: 25 },
+        { text: 'Birthday', fontId: 'script', size: 54, weight: '600' },
+      ],
+      nameFontId: 'script', bodyFont: "'Nunito',system-ui,sans-serif", bodySize: 16,
       photoShape: 'circle', photoSlot: { x: 250, y: 245, w: 188, h: 188 },
-      text: { nameY: 355, bodyY: 402, bodyBottom: 475, footerY: 515 },
+      text: { nameY: 355, bodyY: 402, bodyBottom: 445, footerY: 475 },
     },
-    elements: [
-      placedDecoration('balloon-blue', 54, 220, 90, 148, -6),
-      placedDecoration('balloon-gold', 446, 210, 84, 140, 6),
-      placedDecoration('gift-box-blue', 70, 625, 112, 112, -3),
-      placedDecoration('gift-box-gold', 430, 625, 108, 108, 3),
-      placedDecoration('cake-studio', 250, 625, 150, 150, 0),
-    ].filter(Boolean),
+    elements: [],
   },
   {
     id: 'p-fresh-natural', label: 'Fresh & Natural',
     themeId: 'fresh-natural', fontId: 'hand', layout: 'right-aligned',
     content: { name: 'Sneha', age: '', message: 'May this new year of your life bring you fresh opportunities, brighter days and everything your heart desires.', sender: 'With Best Wishes, Family', secondary: 'Good People, Brighter World' },
-    composition: { titleSize: 54, bodyFont: "'Cormorant Garamond',Georgia,serif", bodySize: 18, text: { footerY: 614 } },
-    elements: [
-      placedDecoration('eucalyptus', 414, 80, 150, 106, 8),
-      placedDecoration('silver-leaf', 72, 88, 110, 82, -12, .9),
-      placedDecoration('peony-white', 260, 625, 102, 102, -8),
-      placedDecoration('cake-studio', 432, 625, 124, 124, 0),
-    ].filter(Boolean),
+    composition: { titleSize: 54, bodyFont: "'Cormorant Garamond',Georgia,serif", bodySize: 18, text: { footerY: 500 } },
+    elements: [],
   },
 ];
 
@@ -737,7 +718,10 @@ async function drawPresetThumb(preset, canvasEl) {
   const st = composePresetState(preset);
   const ctx = canvasEl.getContext('2d');
   engine.renderState(st, ctx, THUMB_W, THUMB_H);
-  await engine.assetsReady(st.elements.filter(e => e.path).map(e => e.path));
+  const paths = st.elements.filter(e => e.path).map(e => e.path);
+  const background = THEMES[st.themeId]?.backgroundImage;
+  if (background) paths.push(background);
+  await engine.assetsReady(paths);
   if (document.fonts?.ready) await document.fonts.ready;
   engine.renderState(st, ctx, THUMB_W, THUMB_H);
 }

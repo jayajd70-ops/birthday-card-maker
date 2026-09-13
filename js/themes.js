@@ -8,6 +8,7 @@ export const THEMES = {
     ink: '#3d2a17',          // deep warm brown
     accent: '#b78740',       // gold
     accent2: '#e6c98a',
+    backgroundImage: 'assets/backgrounds/elegant-gold-v2.webp',
     swatch: 'linear-gradient(135deg,#f4ead6 0%,#e6c98a 55%,#b78740 100%)',
   },
   'romantic-pink': {
@@ -18,17 +19,19 @@ export const THEMES = {
     ink: '#6d2637',          // burgundy / dusty rose
     accent: '#c26a76',
     accent2: '#eaa5a0',
+    backgroundImage: 'assets/backgrounds/romantic-pink-v2.webp',
     swatch: 'linear-gradient(135deg,#fbe6e3 0%,#eaa5a0 55%,#c26a76 100%)',
   },
   'celebration-blue': {
     id: 'celebration-blue',
     label: 'Celebration Blue',
-    bg: '#0f1d3a',           // navy
-    bgAccent: '#1e3160',
-    ink: '#f0f6ff',          // white
-    accent: '#c8a45e',       // gold / silver accent
-    accent2: '#a9b8d1',
-    swatch: 'linear-gradient(135deg,#0f1d3a 0%,#5a76a8 60%,#e6c98a 100%)',
+    bg: '#dceffc',
+    bgAccent: '#9fd0f4',
+    ink: '#082454',
+    accent: '#092f6f',
+    accent2: '#d3a441',
+    backgroundImage: 'assets/backgrounds/celebration-blue-v2.webp',
+    swatch: 'linear-gradient(135deg,#dceffc 0%,#5fa8df 60%,#d3a441 100%)',
   },
   'fresh-natural': {
     id: 'fresh-natural',
@@ -38,6 +41,7 @@ export const THEMES = {
     ink: '#3a4a2b',          // moss / earth
     accent: '#7f9166',       // sage
     accent2: '#c1cba4',
+    backgroundImage: 'assets/backgrounds/fresh-natural-v2.webp',
     swatch: 'linear-gradient(135deg,#eef0e6 0%,#c1cba4 55%,#7f9166 100%)',
   },
 };
