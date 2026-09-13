@@ -657,7 +657,7 @@ const PRESETS = [
     composition: {
       photoShape: 'polaroid', photoSlot: { x: 250, y: 250, w: 210, h: 240, rotation: -1 },
       titleX: 215, titleWidth: 330, titleSize: 53, bodySize: 18, senderSize: 23,
-      text: { nameY: 382, bodyY: 428, bodyBottom: 555, footerY: 600 },
+      text: { nameY: 382, bodyY: 428, bodyBottom: 520, footerY: 555 },
     },
     elements: [],
   },

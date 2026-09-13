@@ -434,8 +434,8 @@ export class CardEngine {
     let nameBottom = box.nameY;
     if (s.content.name) {
       const text = `Dear ${s.content.name}`;
-      const size = fitSingle(text, nameFont, '700', 'italic', comp.nameSize || 31, 17);
-      ctx.font = `italic 700 ${size}px ${nameFont}`; ctx.fillStyle = theme.accent;
+      const size = fitSingle(text, nameFont, '500', 'normal', comp.nameSize || 29, 16);
+      ctx.font = `normal 500 ${size}px ${nameFont}`; ctx.fillStyle = theme.accent;
       ctx.fillText(text, box.x, box.nameY); nameBottom = box.nameY + size + 7;
     }
     if (s.content.age) {
@@ -457,8 +457,8 @@ export class CardEngine {
       ctx.fillText(s.content.secondary, footerX, footerY - 42); ctx.globalAlpha = 1;
     }
     if (s.content.sender) {
-      const size = fitSingle(s.content.sender, nameFont, '700', 'italic', comp.senderSize || 22, 13, footerWidth);
-      ctx.font = `italic 700 ${size}px ${nameFont}`;
+      const size = fitSingle(s.content.sender, nameFont, '500', 'normal', comp.senderSize || 22, 13, footerWidth);
+      ctx.font = `normal 500 ${size}px ${nameFont}`;
       const senderWidth = ctx.measureText(s.content.sender).width;
       const senderLeft = footerAlign === 'left' ? footerX - 9 : footerAlign === 'right' ? footerX - senderWidth - 9 : footerX - senderWidth / 2 - 9;
       ctx.save();
