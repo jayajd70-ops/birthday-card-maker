@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#1a120b" />
+  <title>Birthday Card Maker Premium</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="assets/icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Great+Vibes&family=Caveat:wght@500;700&family=Poppins:wght@600;800&family=Nunito:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="topbar" role="banner">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-name">Birthday Card <em>Studio</em></span>
+      </div>
+      <nav class="topbar-actions" aria-label="Primary">
+        <button class="btn ghost" data-testid="btn-templates" id="btn-templates" type="button">Templates</button>
+        <button class="btn ghost" data-testid="btn-save" id="btn-save" type="button">Save</button>
+        <button class="btn ghost" data-testid="btn-save-as" id="btn-save-as" type="button">Save As</button>
+        <button class="btn ghost" data-testid="btn-share" id="btn-share" type="button">Share</button>
+        <button class="btn primary" data-testid="btn-export" id="btn-export" type="button">Export</button>
+      </nav>
+      <div class="export-popover" id="export-popover" hidden data-testid="export-popover" role="dialog" aria-label="Export options">
+        <div class="ep-head">
+          <span class="ep-title">Export card</span>
+          <button class="btn ghost sm" id="ep-close" type="button" data-testid="btn-export-close" aria-label="Close">✕</button>
+        </div>
+        <div class="ep-options" role="radiogroup" aria-label="Format">
+          <label class="ep-opt" data-testid="ep-fmt-png">
+            <input type="radio" name="ep-fmt" value="png" checked />
+            <div class="ep-opt-body">
+              <span class="ep-fmt">PNG</span>
+              <span class="ep-desc">Lossless · transparent-safe</span>
+            </div>
+            <span class="ep-size" data-testid="ep-size-png">—</span>
+          </label>
+          <label class="ep-opt" data-testid="ep-fmt-jpg">
+            <input type="radio" name="ep-fmt" value="jpg" />
+            <div class="ep-opt-body">
+              <span class="ep-fmt">JPG</span>
+              <span class="ep-desc">Smallest · great for sharing</span>
+            </div>
+            <span class="ep-size" data-testid="ep-size-jpg">—</span>
+          </label>
+          <label class="ep-opt" data-testid="ep-fmt-webp">
+            <input type="radio" name="ep-fmt" value="webp" />
+            <div class="ep-opt-body">
+              <span class="ep-fmt">WebP</span>
+              <span class="ep-desc">Modern · balanced quality</span>
+            </div>
+            <span class="ep-size" data-testid="ep-size-webp">—</span>
+          </label>
+        </div>
+        <div class="ep-foot">
+          <span class="ep-hint">2000 × 2800 · print-ready</span>
+          <button class="btn primary" id="ep-download" type="button" data-testid="btn-export-download">Download</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="side left" aria-label="Design controls">
+        <section class="panel">
+          <h3>Card Presets</h3>
+          <div class="preset-list" id="preset-list" role="listbox" aria-label="Card presets"></div>
+          <button class="btn block preset-save" id="btn-save-preset" type="button" data-testid="btn-save-preset">Save as Preset</button>
+        </section>
+        <section class="panel">
+          <h3>Theme</h3>
+          <div class="theme-grid" id="theme-grid" role="listbox" aria-label="Theme"></div>
+        </section>
+        <section class="panel">
+          <h3>Font</h3>
+          <div class="font-list" id="font-list" role="listbox" aria-label="Font"></div>
+        </section>
+        <section class="panel">
+          <h3>Photo Layout</h3>
+          <div class="layout-list" id="layout-list" role="listbox" aria-label="Photo layout"></div>
+        </section>
+        <section class="panel">
+          <h3>Photo</h3>
+          <div class="photo-actions">
+            <label class="btn block" for="photo-input" data-testid="btn-add-photo">Add Photo</label>
+            <input type="file" id="photo-input" accept="image/*" hidden data-testid="input-photo" />
+            <button class="btn block" id="btn-adjust-photo" type="button" data-testid="btn-adjust-photo">Adjust Photo</button>
+          </div>
+        </section>
+      </aside>
+
+      <section class="stage-wrap" aria-label="Card preview">
+        <div class="stage" id="stage">
+          <canvas id="card-canvas" width="500" height="700" aria-label="Birthday card canvas" data-testid="card-canvas"></canvas>
+          <div id="handles" class="handles" aria-hidden="true"></div>
+          <div id="welcome" class="welcome" data-testid="welcome-overlay">
+            <div class="welcome-card">
+              <h1>Studio Welcome</h1>
+              <p>Select a theme or template to begin your design.</p>
+              <button class="btn primary lg" id="btn-start" type="button" data-testid="btn-create-card">Create Birthday Card</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="side right" aria-label="Content controls">
+        <section class="panel">
+          <h3>Card Content</h3>
+          <label class="field"><span>Recipient Name</span>
+            <input id="in-name" type="text" data-testid="input-name" placeholder="Emma" />
+          </label>
+          <label class="field"><span>Age</span>
+            <input id="in-age" type="text" data-testid="input-age" placeholder="30" />
+          </label>
+          <label class="field"><span>Message</span>
+            <textarea id="in-message" rows="4" data-testid="input-message" placeholder="Wishing you a beautiful day filled with joy."></textarea>
+          </label>
+          <label class="field"><span>Sender Name</span>
+            <input id="in-sender" type="text" data-testid="input-sender" placeholder="With love, Alex" />
+          </label>
+          <label class="field"><span>Secondary Text (optional)</span>
+            <input id="in-secondary" type="text" data-testid="input-secondary" placeholder="Cheers to another beautiful year" />
+          </label>
+        </section>
+
+        <section class="panel">
+          <h3>AI Message</h3>
+          <div class="ai-controls">
+            <label class="field"><span>Mood</span>
+              <select id="ai-mood" data-testid="select-mood">
+                <option>Happy</option><option>Joyful</option><option>Candid</option>
+                <option>Heartfelt</option><option>Romantic</option><option>Funny</option>
+                <option>Elegant</option><option>Professional</option><option>Multiple Variations</option>
+              </select>
+            </label>
+            <div class="row">
+              <button class="btn" id="ai-generate" type="button" data-testid="btn-ai-generate">Generate</button>
+              <button class="btn ghost" id="ai-regenerate" type="button" data-testid="btn-ai-regenerate">Regenerate</button>
+            </div>
+            <div class="ai-results" id="ai-results" aria-live="polite"></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h3>Decorations</h3>
+          <div id="deco-grid" class="deco-grid" role="list" aria-label="Decorations"></div>
+        </section>
+
+        <section class="panel">
+          <h3>Selected Element</h3>
+          <div id="selected-inspector" class="inspector"></div>
+        </section>
+      </aside>
+    </main>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <!-- Photo adjust modal -->
+    <div class="modal" id="modal-photo" hidden aria-hidden="true">
+      <div class="modal-inner">
+        <header class="modal-head">
+          <h2>Photo Adjustment</h2>
+          <button class="btn ghost" id="photo-close" data-testid="btn-close-photo-adjust" type="button">Done</button>
+        </header>
+        <div class="photo-workspace" id="photo-workspace">
+          <div class="photo-preview">
+            <span class="preview-label">Original</span>
+            <canvas id="preview-original" width="360" height="360"></canvas>
+          </div>
+          <div class="photo-preview">
+            <span class="preview-label">Adjusted</span>
+            <canvas id="preview-adjusted" width="360" height="360"></canvas>
+          </div>
+        </div>
+        <div class="photo-controls" id="photo-controls"></div>
+      </div>
+    </div>
+
+    <!-- Templates modal -->
+    <div class="modal" id="modal-templates" hidden aria-hidden="true">
+      <div class="modal-inner narrow">
+        <header class="modal-head">
+          <h2>My Templates</h2>
+          <button class="btn ghost" id="tpl-close" type="button">Close</button>
+        </header>
+        <div class="tpl-list" id="tpl-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"7f7b0fd8732c4326aae4b9d58d5c514a","spa":2}' crossorigin="anonymous"></script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3a7ebbf3a6844a9',t:'MTc4OTMxMDU3MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
