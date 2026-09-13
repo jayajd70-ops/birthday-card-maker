@@ -420,7 +420,8 @@ export class CardEngine {
         while (last && ctx.measureText(last + '…').width > box.width) last = last.slice(0, -1);
         lines[maxLines - 1] = (last || '').trimEnd() + '…';
       }
-      ctx.font = `500 ${size}px ${bodyFont}`; ctx.fillStyle = theme.ink;
+      // Messages use the template accent so their colour follows its floral/design palette.
+      ctx.font = `500 ${size}px ${bodyFont}`; ctx.fillStyle = theme.accent;
       lines.forEach((line, i) => ctx.fillText(line, box.x, y + i * lineH));
     };
 
