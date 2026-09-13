@@ -318,7 +318,9 @@ button{cursor:pointer}
   .workspace{grid-template-columns:220px 1fr 280px}
 }
 @media (max-width: 860px){
-  .workspace{display:flex;flex-direction:column;overflow:auto;min-height:0}
+  html,body{height:auto;min-height:100%}
+  #app{display:block;height:auto;min-height:100dvh;overflow:visible}
+  .workspace{display:flex;flex-direction:column;overflow:visible;min-height:0}
   .stage-wrap{order:-1;min-height:min(720px,calc(96vw * 1.4 + 20px))}
   .side{flex:none;max-height:none;overflow:visible;border:none;border-bottom:1px solid var(--line)}
   .side.right{border-left:none;border-top:1px solid var(--line)}
@@ -353,9 +355,11 @@ button{cursor:pointer}
   #modal-photo .modal-inner{width:100vw;height:100dvh;max-height:none;border-radius:0;border-left:0;border-right:0}
   #modal-photo .modal-head{position:sticky;top:0;z-index:2;padding:12px 14px;background:var(--bg-1)}
   #modal-photo .modal-head h2{font-size:18px}
-  #modal-photo .photo-workspace{padding:12px}
-  #modal-photo .photo-preview:first-child{display:none}
-  #modal-photo .photo-preview canvas{max-width:min(82vw,360px)}
+  #modal-photo .photo-workspace{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:12px 10px}
+  #modal-photo .photo-preview{gap:6px;min-width:0}
+  #modal-photo .photo-preview canvas{max-width:100%}
+  #modal-photo .preview-label{font-size:9px;letter-spacing:.1em;text-align:center}
+  #modal-photo .photo-preview:last-child canvas{touch-action:pan-y}
   #modal-photo .photo-controls{padding:0 12px 28px;gap:14px}
   #modal-photo .crop-tools{padding:12px;gap:10px}
   #modal-photo .crop-copy{min-width:0}

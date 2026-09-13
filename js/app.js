@@ -344,6 +344,8 @@ function installCropDrag(target) {
   const canvas = $('#preview-adjusted');
   let drag = null;
   canvas.onpointerdown = (event) => {
+    // On a phone, a swipe must scroll the adjustment sheet rather than accidentally moving the photo.
+    if (event.pointerType === 'touch') return;
     const rect = canvas.getBoundingClientRect();
     drag = { x: event.clientX, y: event.clientY, scale: 360 / rect.width };
     canvas.setPointerCapture(event.pointerId);
@@ -1037,6 +1039,12 @@ engine.requestRender();
 /* ---- PWA ---- */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((registration) => {
+      registration.update().catch(() => {});
+      let reloading = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!reloading) { reloading = true; window.location.reload(); }
+      });
+    }).catch(() => {});
   });
 }
