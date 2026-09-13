@@ -24,11 +24,29 @@ export const LAYER_ORDER = [
 ];
 const LAYER_INDEX = Object.fromEntries(LAYER_ORDER.map((l, i) => [l, i]));
 
+export const PHOTO_SLOTS = {
+  'center-focus': [
+    { x: 250, y: 252, w: 206, h: 206, rotation: 0, shape: 'circle' },
+  ],
+  'left-aligned': [
+    { x: 142, y: 308, w: 200, h: 258, rotation: -2, shape: 'polaroid' },
+  ],
+  'right-aligned': [
+    { x: 358, y: 308, w: 200, h: 258, rotation: 2, shape: 'polaroid' },
+  ],
+  collage: [
+    { x: 132, y: 280, w: 166, h: 206, rotation: -7, shape: 'polaroid' },
+    { x: 250, y: 250, w: 166, h: 206, rotation: 1, shape: 'polaroid' },
+    { x: 368, y: 282, w: 166, h: 206, rotation: 7, shape: 'polaroid' },
+  ],
+};
+
 export function makeInitialState() {
   return {
     themeId: 'elegant-gold',
     fontId: 'script',
     layout: 'center-focus',
+    composition: {},
     content: { name: '', age: '', message: '', sender: '', secondary: '' },
     photo: null, // { id, adj:{...} }
     photos: [], // for collage
@@ -140,6 +158,9 @@ export class CardEngine {
     ctx.lineWidth = 1.5;
     ctx.strokeRect(SAFE_MARGIN / 2, SAFE_MARGIN / 2, CANVAS_W - SAFE_MARGIN, CANVAS_H - SAFE_MARGIN);
 
+    this.drawThemeDetails(ctx, theme);
+    this.drawEmptyPhotoSlots(ctx, theme);
+
     // 2) sorted elements: by layer index then zIndex
     const items = [...s.elements].sort((a, b) =>
       (LAYER_INDEX[a.layer] - LAYER_INDEX[b.layer]) || (a.zIndex - b.zIndex)
@@ -153,6 +174,55 @@ export class CardEngine {
 
     // update handles overlay if rendering to main canvas
     if (!targetCtx) this.updateHandles();
+  }
+
+  drawThemeDetails(ctx, theme) {
+    ctx.save();
+    ctx.globalAlpha = 0.16;
+    if (this.state.themeId === 'celebration-blue') {
+      ctx.fillStyle = theme.accent;
+      for (let i = 0; i < 42; i++) {
+        const x = (i * 83) % CANVAS_W;
+        const y = 90 + ((i * 137) % 500);
+        ctx.save(); ctx.translate(x, y); ctx.rotate((i % 7) * 0.3);
+        ctx.fillRect(-2, -5, 4, 10); ctx.restore();
+      }
+    } else {
+      const bloom = ctx.createRadialGradient(70, 80, 5, 70, 80, 170);
+      bloom.addColorStop(0, theme.accent2 + 'aa');
+      bloom.addColorStop(1, theme.accent2 + '00');
+      ctx.fillStyle = bloom; ctx.fillRect(0, 0, 250, 260);
+      const bloom2 = ctx.createRadialGradient(440, 620, 5, 440, 620, 190);
+      bloom2.addColorStop(0, theme.accent + '88');
+      bloom2.addColorStop(1, theme.accent + '00');
+      ctx.fillStyle = bloom2; ctx.fillRect(230, 400, 270, 300);
+    }
+    ctx.restore();
+  }
+
+  drawEmptyPhotoSlots(ctx, theme) {
+    const photos = this.state.elements.filter(e => e.type === 'photo' && !e.hidden);
+    const slots = PHOTO_SLOTS[this.state.layout] || PHOTO_SLOTS['center-focus'];
+    const needed = this.state.layout === 'collage' ? slots.length : 1;
+    for (let i = photos.length; i < needed; i++) {
+      const base = slots[i];
+      const override = this.state.composition?.photoSlots?.[i] || (i === 0 ? this.state.composition?.photoSlot : null) || {};
+      const slot = { ...base, ...override, shape: this.state.composition?.photoShape || override.shape || base.shape };
+      ctx.save(); ctx.translate(slot.x, slot.y); ctx.rotate(slot.rotation * Math.PI / 180);
+      ctx.setLineDash([7, 6]); ctx.lineWidth = 2;
+      ctx.strokeStyle = theme.accent + 'aa';
+      ctx.fillStyle = theme.bg + 'aa';
+      if (slot.shape === 'circle') {
+        ctx.beginPath(); ctx.arc(0, 0, slot.w / 2, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      } else {
+        ctx.fillRect(-slot.w / 2, -slot.h / 2, slot.w, slot.h);
+        ctx.strokeRect(-slot.w / 2, -slot.h / 2, slot.w, slot.h);
+      }
+      ctx.setLineDash([]); ctx.fillStyle = theme.ink; ctx.globalAlpha = 0.7;
+      ctx.font = '600 13px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(this.state.layout === 'collage' ? `Photo ${i + 1}` : 'Add a photo', 0, 0);
+      ctx.restore();
+    }
   }
 
   drawElement(ctx, el) {
@@ -179,6 +249,10 @@ export class CardEngine {
 
   drawPhotoElement(ctx, el) {
     const img = this.photoCache.get(el.photoId);
+    if (el.shape === 'circle') {
+      this.drawCircularPhoto(ctx, el, img);
+      return;
+    }
     // Polaroid frame: white padding around image
     const framePad = 14;
     const bottomPad = 26;
@@ -253,121 +327,102 @@ export class CardEngine {
     ctx.restore();
   }
 
+  drawCircularPhoto(ctx, el, img) {
+    const radius = Math.min(el.w, el.h) / 2;
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,.28)'; ctx.shadowBlur = 18; ctx.shadowOffsetY = 6;
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowColor = 'transparent';
+    const inner = radius - 10;
+    ctx.beginPath(); ctx.arc(0, 0, inner, 0, Math.PI * 2); ctx.clip();
+    ctx.fillStyle = '#efe6d9'; ctx.fillRect(-inner, -inner, inner * 2, inner * 2);
+    if (img && img.complete && img.naturalWidth) {
+      const adj = el.adj || {};
+      ctx.filter = `brightness(${adj.brightness ?? 1}) contrast(${adj.contrast ?? 1}) saturate(${adj.saturation ?? 1}) sepia(${adj.warmth ?? 0}) blur(${adj.blur ?? 0}px)`;
+      ctx.globalAlpha *= adj.opacity ?? 1;
+      const diameter = inner * 2;
+      const scale = (adj.zoom ?? 1) * ((adj.fitMode || 'fill') === 'fill'
+        ? Math.max(diameter / img.naturalWidth, diameter / img.naturalHeight)
+        : Math.min(diameter / img.naturalWidth, diameter / img.naturalHeight));
+      ctx.translate(adj.offsetX ?? 0, adj.offsetY ?? 0);
+      ctx.rotate(((adj.rotation ?? 0) * Math.PI) / 180);
+      ctx.scale(adj.flipX ? -1 : 1, adj.flipY ? -1 : 1);
+      ctx.drawImage(img, -img.naturalWidth * scale / 2, -img.naturalHeight * scale / 2,
+        img.naturalWidth * scale, img.naturalHeight * scale);
+    }
+    ctx.restore();
+    ctx.save(); ctx.strokeStyle = THEMES[this.state.themeId].accent; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.arc(0, 0, radius - 2, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+  }
+
   drawTexts(ctx, theme, font) {
     const s = this.state;
-    const align = s.layout === 'left-aligned' ? 'left' :
-                  s.layout === 'right-aligned' ? 'right' : 'center';
-    const padX = SAFE_MARGIN + 6;
-    const boxW = CANVAS_W - padX * 2;
-    let x = CANVAS_W / 2;
-    if (align === 'left') x = padX;
-    if (align === 'right') x = CANVAS_W - padX;
-
-    // Where photos live determines whether text lives above/below or spans full width
-    const hasPhoto = s.elements.some(e => e.type === 'photo');
-    let titleY = 56;
-    let bodyStartY = 380;
-    if (s.layout === 'center-focus' && hasPhoto) { titleY = 46; bodyStartY = 420; }
-    if (s.layout === 'collage')       { titleY = 40; bodyStartY = 460; }
-
+    const comp = s.composition || {};
+    const layouts = {
+      'center-focus': { titleY: 38, x: 250, width: 370, align: 'center', nameY: 372, bodyY: 430, bodyBottom: 584, footerY: 646 },
+      'left-aligned': { titleY: 38, x: 278, width: 168, align: 'left', nameY: 178, bodyY: 242, bodyBottom: 510, footerY: 610 },
+      'right-aligned': { titleY: 38, x: 222, width: 168, align: 'right', nameY: 178, bodyY: 242, bodyBottom: 510, footerY: 610 },
+      collage: { titleY: 36, x: 250, width: 390, align: 'center', nameY: 405, bodyY: 458, bodyBottom: 580, footerY: 646 },
+    };
+    const box = { ...(layouts[s.layout] || layouts['center-focus']), ...(comp.text || {}) };
+    const titleFont = (FONTS[comp.titleFontId] || font).family;
+    const nameFont = (FONTS[comp.nameFontId] || font).family;
+    const bodyFont = comp.bodyFont || "'Cormorant Garamond',Georgia,serif";
     ctx.textBaseline = 'top';
-    const fam = font.family;
-    const scale = font.size;
 
-    // Helper: auto-shrink single-line to fit boxW
-    const fitSingle = (text, weight, style, size, min) => {
-      let sz = size;
-      ctx.font = `${style} ${weight} ${sz}px ${fam}`;
-      while (ctx.measureText(text).width > boxW && sz > min) {
-        sz -= 1; ctx.font = `${style} ${weight} ${sz}px ${fam}`;
-      }
-      return sz;
+    const fitSingle = (text, family, weight, style, start, min, width = box.width) => {
+      let size = start;
+      do {
+        ctx.font = `${style} ${weight} ${size}px ${family}`;
+        if (ctx.measureText(text).width <= width) return size;
+        size -= 1;
+      } while (size >= min);
+      return min;
     };
-    // Helper: wrap into up to N lines, shrinking size if needed
-    const fitMulti = (text, weight, style, size, min, maxLines) => {
-      let sz = size, lines = [];
-      while (sz >= min) {
-        ctx.font = `${style} ${weight} ${sz}px ${fam}`;
-        lines = wrapLines(ctx, text, boxW);
-        if (lines.length <= maxLines) break;
-        sz -= 1;
+    const drawWrapped = (text, y, bottom, startSize = 20) => {
+      let size = startSize, lines = [], lineH = 0;
+      while (size >= 12) {
+        ctx.font = `500 ${size}px ${bodyFont}`;
+        lines = wrapLines(ctx, text, box.width);
+        lineH = size * 1.25;
+        if (lines.length * lineH <= bottom - y) break;
+        size -= 1;
       }
-      return { size: sz, lines };
+      ctx.font = `500 ${size}px ${bodyFont}`; ctx.fillStyle = theme.ink;
+      lines.forEach((line, i) => ctx.fillText(line, box.x, y + i * lineH));
     };
 
-    // 1) Happy Birthday title
-    const titleSize = fitSingle('Happy Birthday', '700', 'normal', Math.round(56 * scale), 32);
-    ctx.fillStyle = theme.accent;
-    ctx.textAlign = align;
-    ctx.fillText('Happy Birthday', x, titleY);
+    ctx.textAlign = 'center';
+    const titleSize = fitSingle('Happy Birthday', titleFont, '700', 'normal', comp.titleSize || 55, 30, 410);
+    ctx.font = `normal 700 ${titleSize}px ${titleFont}`; ctx.fillStyle = theme.accent;
+    ctx.fillText('Happy Birthday', 250, box.titleY);
 
-    // 2) Dear [Name] — prominent (script-style, larger, accent tone)
-    let cy = titleY + titleSize + 8;
+    ctx.textAlign = box.align;
+    let nameBottom = box.nameY;
     if (s.content.name) {
-      const nameText = `Dear ${s.content.name}`;
-      const dSize = fitSingle(nameText, '700', 'italic', Math.round(34 * scale), 18);
-      ctx.font = `italic 700 ${dSize}px ${fam}`;
-      ctx.fillStyle = theme.accent;
-      ctx.fillText(nameText, x, cy);
-      cy += dSize + 10;
+      const text = `Dear ${s.content.name}`;
+      const size = fitSingle(text, nameFont, '700', 'italic', comp.nameSize || 31, 17);
+      ctx.font = `italic 700 ${size}px ${nameFont}`; ctx.fillStyle = theme.accent;
+      ctx.fillText(text, box.x, box.nameY); nameBottom = box.nameY + size + 7;
     }
-
-    // 3) Age (small accent line)
     if (s.content.age) {
-      const ageSize = fitSingle(`Turning ${s.content.age}`, '600', 'normal', Math.round(20 * scale), 12);
-      ctx.font = `600 ${ageSize}px ${fam}`;
-      ctx.fillStyle = theme.ink;
-      ctx.globalAlpha = 0.75;
-      ctx.fillText(`Turning ${s.content.age}`, x, cy);
-      ctx.globalAlpha = 1;
-      cy += ageSize + 6;
+      const text = `Turning ${s.content.age}`;
+      const size = fitSingle(text, bodyFont, '600', 'normal', 18, 12);
+      ctx.font = `normal 600 ${size}px ${bodyFont}`; ctx.fillStyle = theme.ink; ctx.globalAlpha = 0.78;
+      ctx.fillText(text, box.x, nameBottom); ctx.globalAlpha = 1; nameBottom += size + 6;
     }
+    if (s.content.message) drawWrapped(s.content.message, Math.max(box.bodyY, nameBottom + 6), box.bodyBottom, comp.bodySize || 19);
 
-    // Reserve space at the bottom for secondary + sender so message never overflows
-    const senderH  = s.content.sender    ? Math.round(20 * scale) + 8 : 0;
-    const secondH  = s.content.secondary ? Math.round(18 * scale) + 8 : 0;
-    const bottomReserve = SAFE_MARGIN + 8 + senderH + secondH;
-    const messageBottom = CANVAS_H - bottomReserve;
-
-    // 4) Message — auto-fit to remaining band, up to 6 lines
-    const message = s.content.message || '';
-    if (message) {
-      const mStartY = Math.max(cy + 10, bodyStartY);
-      const availH = messageBottom - mStartY;
-      // First try normal size with wrap and clamp lines
-      let maxLines = Math.max(1, Math.floor(availH / (Math.round(22 * scale) * 1.2)));
-      const mFit = fitMulti(message, '500', 'normal', Math.round(22 * scale), 13, maxLines);
-      ctx.fillStyle = theme.ink;
-      ctx.font = `500 ${mFit.size}px ${fam}`;
-      const lineH = mFit.size * 1.2;
-      let my = mStartY;
-      for (const line of mFit.lines) {
-        if (my + lineH > messageBottom) break;
-        ctx.fillText(line, x, my);
-        my += lineH;
-      }
-    }
-
-    // 5) Sender — prominent (bottom band, script/italic, accent color)
-    let footerY = CANVAS_H - SAFE_MARGIN - 4;
-    if (s.content.sender) {
-      const sSize = fitSingle(s.content.sender, '600', 'italic', Math.round(20 * scale), 12);
-      ctx.font = `italic 600 ${sSize}px ${fam}`;
-      ctx.fillStyle = theme.accent;
-      footerY -= sSize;
-      ctx.fillText(s.content.sender, x, footerY);
-      footerY -= 6;
-    }
-
-    // 6) Secondary (small italic accent) above sender
+    let footerY = box.footerY;
     if (s.content.secondary) {
-      const scSize = fitSingle(s.content.secondary, '400', 'italic', Math.round(16 * scale), 11);
-      ctx.font = `italic 400 ${scSize}px ${fam}`;
-      ctx.fillStyle = theme.ink;
-      ctx.globalAlpha = 0.75;
-      footerY -= scSize;
-      ctx.fillText(s.content.secondary, x, footerY);
-      ctx.globalAlpha = 1;
+      const size = fitSingle(s.content.secondary, bodyFont, '500', 'italic', 15, 11);
+      ctx.font = `italic 500 ${size}px ${bodyFont}`; ctx.fillStyle = theme.ink; ctx.globalAlpha = 0.78;
+      ctx.fillText(s.content.secondary, box.x, footerY - 42); ctx.globalAlpha = 1;
+    }
+    if (s.content.sender) {
+      const size = fitSingle(s.content.sender, nameFont, '600', 'italic', 20, 12);
+      ctx.font = `italic 600 ${size}px ${nameFont}`; ctx.fillStyle = theme.accent;
+      ctx.fillText(s.content.sender, box.x, footerY);
     }
   }
 
@@ -421,43 +476,97 @@ export class CardEngine {
 
   addPhoto(photoId, { layout } = {}) {
     const l = layout || this.state.layout;
-    // Photo positions matching the reference: photo lives in the upper portion, text lives below.
-    let x = CANVAS_W / 2, y = 250, w = 260, h = 300;
-    if (l === 'left-aligned')  { x = 170; y = CANVAS_H / 2 - 20; w = 220; h = 270; }
-    if (l === 'right-aligned') { x = CANVAS_W - 170; y = CANVAS_H / 2 - 20; w = 220; h = 270; }
+    const existing = this.state.elements.filter(e => e.type === 'photo');
+    const slots = PHOTO_SLOTS[l] || PHOTO_SLOTS['center-focus'];
+    let slotIndex = 0;
     if (l === 'collage') {
-      const cells = [
-        { x: 160, y: 220, w: 200, h: 240, rot: -3 },
-        { x: 340, y: 190, w: 150, h: 180, rot: 5 },
-        { x: 340, y: 380, w: 150, h: 180, rot: -4 },
-      ];
-      cells.forEach((c, idx) => {
-        const el = {
-          id: 'p_' + Math.random().toString(36).slice(2, 9),
-          type: 'photo', layer: 'photo', photoId,
-          collageIndex: idx,
-          x: c.x, y: c.y, w: c.w, h: c.h, rotation: c.rot,
-          opacity: 1, hidden: false, locked: false,
-          adj: defaultAdj(), zIndex: this.state.nextZ++,
-        };
-        this.state.elements.push(el);
-      });
-      this.onChange && this.onChange();
-      this.requestRender();
-      return;
+      slotIndex = Math.min(existing.length, slots.length - 1);
+      if (existing.length >= slots.length) {
+        const selected = existing.find(e => e.id === this.state.selectedId) || existing[0];
+        selected.photoId = photoId; selected.adj = defaultAdj();
+        this.state.selectedId = selected.id;
+        this.onSelect && this.onSelect(selected.id); this.onChange && this.onChange(); this.requestRender();
+        return selected;
+      }
+    } else if (existing.length) {
+      const keep = existing.find(e => e.id === this.state.selectedId) || existing[0];
+      keep.photoId = photoId; keep.adj = defaultAdj();
+      this.state.elements = this.state.elements.filter(e => e.type !== 'photo' || e.id === keep.id);
+      this.applyPhotoSlot(keep, slots[0], 0);
+      this.state.selectedId = keep.id;
+      this.onSelect && this.onSelect(keep.id); this.onChange && this.onChange(); this.requestRender();
+      return keep;
     }
     const el = {
       id: 'p_' + Math.random().toString(36).slice(2, 9),
       type: 'photo', layer: 'photo', photoId,
-      x, y, w, h, rotation: 0, opacity: 1, hidden: false, locked: false,
       adj: defaultAdj(), zIndex: this.state.nextZ++,
+      opacity: 1, hidden: false, locked: false,
     };
+    this.applyPhotoSlot(el, slots[slotIndex], slotIndex);
     this.state.elements.push(el);
     this.state.selectedId = el.id;
     if (this.onSelect) this.onSelect(el.id);
     this.onChange && this.onChange();
     this.requestRender();
     return el;
+  }
+
+  applyPhotoSlot(el, slot, index) {
+    const override = this.state.composition?.photoSlots?.[index] || (index === 0 ? this.state.composition?.photoSlot : null) || {};
+    const resolved = { ...slot, ...override };
+    Object.assign(el, {
+      x: resolved.x, y: resolved.y, w: resolved.w, h: resolved.h,
+      rotation: resolved.rotation || 0,
+      shape: this.state.composition?.photoShape || resolved.shape || 'polaroid',
+      collageIndex: index,
+    });
+  }
+
+  setPhotoLayout(layout) {
+    const photos = this.state.elements.filter(e => e.type === 'photo');
+    const other = this.state.elements.filter(e => e.type !== 'photo');
+    this.state.layout = layout;
+    this.state.composition = { ...(this.state.composition || {}) };
+    delete this.state.composition.photoSlot;
+    delete this.state.composition.photoSlots;
+    delete this.state.composition.photoShape;
+    delete this.state.composition.text;
+    const slots = PHOTO_SLOTS[layout] || PHOTO_SLOTS['center-focus'];
+    const kept = layout === 'collage' ? photos.slice(0, slots.length) : photos.slice(0, 1);
+    kept.forEach((el, index) => this.applyPhotoSlot(el, slots[index], index));
+    this.state.elements = [...other, ...kept];
+    this.reflowDecorations(layout);
+    if (!kept.some(e => e.id === this.state.selectedId)) this.state.selectedId = kept[0]?.id || null;
+    this.onSelect && this.onSelect(this.state.selectedId);
+    this.onChange && this.onChange();
+    this.requestRender();
+  }
+
+  reflowDecorations(layout) {
+    const zones = {
+      'center-focus': [{ x: 95, y: 345, w: 310, h: 245 }],
+      collage: [{ x: 90, y: 392, w: 320, h: 278 }],
+      'left-aligned': [{ x: 250, y: 145, w: 215, h: 520 }],
+      'right-aligned': [{ x: 35, y: 145, w: 215, h: 520 }],
+    };
+    const intersects = (el, zone) => {
+      const left = el.x - el.w / 2, top = el.y - el.h / 2;
+      return left < zone.x + zone.w && left + el.w > zone.x && top < zone.y + zone.h && top + el.h > zone.y;
+    };
+    const candidates = layout === 'left-aligned'
+      ? [{ x: 58, y: 155 }, { x: 60, y: 500 }, { x: 145, y: 610 }, { x: 55, y: 630 }]
+      : layout === 'right-aligned'
+        ? [{ x: 442, y: 155 }, { x: 440, y: 500 }, { x: 355, y: 610 }, { x: 445, y: 630 }]
+        : [{ x: 42, y: 165 }, { x: 458, y: 170 }, { x: 42, y: 315 }, { x: 458, y: 315 }, { x: 42, y: 635 }, { x: 458, y: 635 }];
+    let cursor = 0;
+    for (const el of this.state.elements.filter(e => e.type === 'decoration')) {
+      if (!(zones[layout] || []).some(zone => intersects(el, zone))) continue;
+      const target = candidates[cursor++ % candidates.length];
+      const scale = Math.min(1, 94 / Math.max(el.w, el.h));
+      el.w = Math.round(el.w * scale); el.h = Math.round(el.h * scale);
+      el.x = target.x; el.y = target.y;
+    }
   }
 
   removeSelected() {

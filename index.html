@@ -87,9 +87,10 @@
         <section class="panel">
           <h3>Photo</h3>
           <div class="photo-actions">
-            <label class="btn block" for="photo-input" data-testid="btn-add-photo">Add Photo</label>
-            <input type="file" id="photo-input" accept="image/*" hidden data-testid="input-photo" />
+            <label class="btn block" id="photo-input-label" for="photo-input" data-testid="btn-add-photo">Add Photo</label>
+            <input type="file" id="photo-input" accept="image/*" multiple hidden data-testid="input-photo" />
             <button class="btn block" id="btn-adjust-photo" type="button" data-testid="btn-adjust-photo">Adjust Photo</button>
+            <p class="photo-help" id="photo-help">Upload one photo, then choose how it is placed.</p>
           </div>
         </section>
       </aside>
@@ -194,6 +195,5 @@
   </div>
 
   <script type="module" src="js/app.js"></script>
-<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"7f7b0fd8732c4326aae4b9d58d5c514a","spa":2}' crossorigin="anonymous"></script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3a7ebbf3a6844a9',t:'MTc4OTMxMDU3MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>

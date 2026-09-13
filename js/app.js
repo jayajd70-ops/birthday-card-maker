@@ -1,5 +1,5 @@
 // Birthday Card Maker Premium — main app (UI wiring)
-import { CardEngine, defaultAdj, LAYER_ORDER, makeInitialState } from './engine.js';
+import { CardEngine, defaultAdj, LAYER_ORDER, PHOTO_SLOTS, makeInitialState } from './engine.js';
 import { THEMES, FONTS, LAYOUTS, CANVAS_W, CANVAS_H } from './themes.js';
 import { DECORATIONS, decorationsForTheme } from './data/decorations.js';
 import { generateMessage } from './ai.js';
@@ -81,13 +81,27 @@ function buildLayouts() {
     b.dataset.testid = `layout-${l.id}`;
     b.dataset.layoutId = l.id;
     b.textContent = l.label;
-    b.addEventListener('click', () => { engine.setState({ layout: l.id }); refreshLayoutActive(); });
+    b.addEventListener('click', () => {
+      engine.setPhotoLayout(l.id);
+      refreshLayoutActive();
+      refreshPhotoHelp();
+      dismissWelcome();
+    });
     list.appendChild(b);
   });
   refreshLayoutActive();
 }
 function refreshLayoutActive() {
   $$('.layout-item').forEach(el => el.classList.toggle('active', el.dataset.layoutId === engine.state.layout));
+}
+
+function refreshPhotoHelp() {
+  const collage = engine.state.layout === 'collage';
+  const count = engine.state.elements.filter(e => e.type === 'photo').length;
+  $('#photo-input-label').textContent = collage ? 'Add Photos' : (count ? 'Replace Photo' : 'Add Photo');
+  $('#photo-help').textContent = collage
+    ? `${count}/3 photos added. You can select up to three at once.`
+    : 'Upload one photo; switching layouts keeps it in the design.';
 }
 
 let lastDecoClick = 0;
@@ -162,7 +176,6 @@ async function handlePhotoUpload(file) {
     engine.attachPhoto(id, url);
     engine.addPhoto(id);
     dismissWelcome();
-    toast('Photo added');
     scheduleAutosave();
   } catch (e) {
     console.error(e);
@@ -170,9 +183,14 @@ async function handlePhotoUpload(file) {
   }
 }
 
-$('#photo-input').addEventListener('change', (e) => {
-  const f = e.target.files?.[0];
-  if (f) handlePhotoUpload(f);
+$('#photo-input').addEventListener('change', async (e) => {
+  const files = Array.from(e.target.files || []);
+  const existing = engine.state.elements.filter(el => el.type === 'photo').length;
+  const maxFiles = engine.state.layout === 'collage' ? Math.max(1, 3 - existing) : 1;
+  const selected = files.slice(0, maxFiles);
+  for (const file of selected) await handlePhotoUpload(file);
+  if (selected.length) toast(selected.length > 1 ? `${selected.length} photos added` : 'Photo added');
+  refreshPhotoHelp();
   e.target.value = '';
 });
 
@@ -356,7 +374,7 @@ function renderInspector() {
 }
 
 engine.onSelect = () => renderInspector();
-engine.onChange = () => scheduleAutosave();
+engine.onChange = () => { scheduleAutosave(); refreshPhotoHelp(); };
 
 /* ---- Save / Open / Templates ---- */
 function stateSnapshot(id, name) {
@@ -403,6 +421,9 @@ async function openTemplate(id) {
   if (!rec) { toast('Template not found'); return; }
   currentTemplateRecord = rec;
   engine.state = rec.editor;
+  engine.state.composition ||= {};
+  engine.state.elements ||= [];
+  engine.state.nextZ ||= 100;
   // rehydrate photo blob(s)
   const photoIds = new Set();
   (engine.state.elements || []).forEach(e => { if (e.type === 'photo' && e.photoId) photoIds.add(e.photoId); });
@@ -601,36 +622,77 @@ document.addEventListener('keydown', (e) => {
 });
 
 /* ---- Card Presets ---- */
+function placedDecoration(id, x, y, w, h, rotation = 0, opacity = 1, layer = 'decoration') {
+  const dec = DECORATIONS.find(d => d.id === id);
+  return dec ? {
+    type: layer === 'bg-decoration' ? 'bg-decoration' : 'decoration', layer,
+    path: dec.path, name: dec.name, x, y, w, h, rotation, opacity,
+    hidden: false, locked: false,
+  } : null;
+}
+
 const PRESETS = [
   {
     id: 'p-elegant-gold', label: 'Elegant Gold',
     themeId: 'elegant-gold', fontId: 'script', layout: 'center-focus',
     content: { name: 'Ananya', age: '30', message: 'Wishing you a day filled with love, happiness and all the beautiful moments you deserve.', sender: 'With Love, Team', secondary: '' },
-    decorations: ['balloon-gold', 'gift-box-gold', 'peony-white', 'gold-foil'],
+    composition: {
+      photoShape: 'polaroid', photoSlot: { x: 250, y: 250, w: 210, h: 240, rotation: -1 },
+      titleSize: 58, bodySize: 18, text: { nameY: 382, bodyY: 428, bodyBottom: 570, footerY: 642 },
+    },
+    elements: [
+      placedDecoration('balloon-gold', 53, 245, 92, 150, -5),
+      placedDecoration('balloon-gold', 447, 224, 80, 132, 7),
+      placedDecoration('peony-white', 70, 632, 118, 118, -10),
+      placedDecoration('gift-box-gold', 432, 625, 112, 112, 4),
+    ].filter(Boolean),
   },
   {
     id: 'p-romantic-pink', label: 'Romantic Pink',
-    themeId: 'romantic-pink', fontId: 'script', layout: 'right-aligned',
+    themeId: 'romantic-pink', fontId: 'script', layout: 'left-aligned',
     content: { name: 'Priya', age: '', message: 'May your special day be as beautiful, kind and amazing as you are. Stay happy, stay blessed, keep shining!', sender: 'With Love, Your Friends', secondary: 'Happiness looks good on you!' },
-    decorations: ['rose-bouquet-pink', 'cake-studio', 'ribbon-velvet-pink'],
+    composition: { titleSize: 57, bodySize: 17, text: { footerY: 620 } },
+    elements: [
+      placedDecoration('ribbon-velvet-pink', 85, 92, 120, 68, -8, .9),
+      placedDecoration('rose-bouquet-pink', 452, 475, 92, 110, 7),
+      placedDecoration('cake-studio', 88, 625, 126, 126, 0),
+    ].filter(Boolean),
   },
   {
     id: 'p-celebration-blue', label: 'Celebration Blue',
     themeId: 'celebration-blue', fontId: 'bold', layout: 'center-focus',
     content: { name: 'Rohan', age: '', message: 'Wishing you success, happiness, good health and countless joyful moments today and always!', sender: 'Enjoy your day!', secondary: 'To an amazing person' },
-    decorations: ['balloon-blue', 'balloon-gold', 'cake-studio', 'gift-box-blue'],
+    composition: {
+      titleSize: 44, nameFontId: 'script', bodyFont: "'Nunito',system-ui,sans-serif", bodySize: 16,
+      photoShape: 'circle', photoSlot: { x: 250, y: 245, w: 188, h: 188 },
+      text: { nameY: 355, bodyY: 402, bodyBottom: 475, footerY: 515 },
+    },
+    elements: [
+      placedDecoration('balloon-blue', 54, 220, 90, 148, -6),
+      placedDecoration('balloon-gold', 446, 210, 84, 140, 6),
+      placedDecoration('gift-box-blue', 70, 625, 112, 112, -3),
+      placedDecoration('gift-box-gold', 430, 625, 108, 108, 3),
+      placedDecoration('cake-studio', 250, 625, 150, 150, 0),
+    ].filter(Boolean),
   },
   {
     id: 'p-fresh-natural', label: 'Fresh & Natural',
-    themeId: 'fresh-natural', fontId: 'casual', layout: 'left-aligned',
+    themeId: 'fresh-natural', fontId: 'hand', layout: 'right-aligned',
     content: { name: 'Sneha', age: '', message: 'May this new year of your life bring you fresh opportunities, brighter days and everything your heart desires.', sender: 'With Best Wishes, Family', secondary: 'Good People, Brighter World' },
-    decorations: ['eucalyptus', 'cake-studio', 'peony-white', 'silver-leaf'],
+    composition: { titleSize: 54, bodyFont: "'Cormorant Garamond',Georgia,serif", bodySize: 18, text: { footerY: 614 } },
+    elements: [
+      placedDecoration('eucalyptus', 414, 80, 150, 106, 8),
+      placedDecoration('silver-leaf', 72, 88, 110, 82, -12, .9),
+      placedDecoration('peony-white', 260, 625, 102, 102, -8),
+      placedDecoration('cake-studio', 432, 625, 124, 124, 0),
+    ].filter(Boolean),
   },
 ];
 
 function composePresetState(preset) {
   const st = makeInitialState();
   st.themeId = preset.themeId; st.fontId = preset.fontId; st.layout = preset.layout;
+  st.composition = JSON.parse(JSON.stringify(preset.composition || {}));
   st.content = { ...st.content, ...(preset.content || preset.previewContent || {}) };
   const live = engine.state;
   engine.state = st;
@@ -649,12 +711,20 @@ function composePresetState(preset) {
 }
 
 function applyPreset(preset) {
+  const photos = engine.state.elements.filter(e => e.type === 'photo').map(e => ({ ...e, adj: { ...(e.adj || defaultAdj()) } }));
   const st = composePresetState(preset);
   if (preset.custom) { readContentInto(engine.state); st.content = { ...engine.state.content }; }
   engine.state = st;
+  const slots = preset.layout === 'collage' ? photos.slice(0, 3) : photos.slice(0, 1);
+  slots.forEach((photo, index) => {
+    photo.zIndex = st.nextZ++;
+    engine.applyPhotoSlot(photo, PHOTO_SLOTS[preset.layout][index], index);
+    st.elements.push(photo);
+  });
   pushContentFrom(engine.state);
   refreshThemeActive(); refreshFontActive(); refreshLayoutActive();
   buildDecorations();
+  refreshPhotoHelp();
   engine.select(null);
   dismissWelcome();
   currentTemplateRecord = null;
@@ -811,6 +881,7 @@ async function saveAsPreset() {
     label: label.trim(), custom: true, createdAt: Date.now(),
     order: maxOrder + 10,
     themeId: engine.state.themeId, fontId: engine.state.fontId, layout: engine.state.layout,
+    composition: JSON.parse(JSON.stringify(engine.state.composition || {})),
     elements: decos.map(({ id, ...rest }) => JSON.parse(JSON.stringify(rest))),
     previewContent: { ...engine.state.content },
   };
@@ -827,6 +898,7 @@ buildLayouts();
 buildDecorations();
 buildPresets();
 renderInspector();
+refreshPhotoHelp();
 engine.requestRender();
 
 /* ---- PWA ---- */

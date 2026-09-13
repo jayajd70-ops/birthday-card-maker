@@ -1,5 +1,5 @@
 /* Birthday Card Maker Premium — service worker */
-const VERSION = 'bcm-v1.1.0';
+const VERSION = 'bcm-v1.2.0';
 const CORE = [
   './',
   './index.html',
@@ -13,6 +13,22 @@ const CORE = [
   './js/data/decorations.js',
   './assets/icons/icon-192.png',
   './assets/icons/icon-512.png',
+  './assets/decorations/white-peony-top-down.webp',
+  './assets/decorations/velvet-ribbon-pink.webp',
+  './assets/decorations/silver-satin-ribbon-premium.webp',
+  './assets/decorations/silver-metallic-dust.png',
+  './assets/decorations/silver-leaf-sprig-premium.webp',
+  './assets/decorations/silk-satin-bow-ivory.webp',
+  './assets/decorations/sage-green-candle-premium.webp',
+  './assets/decorations/romantic-taper-candle-premium.webp',
+  './assets/decorations/pink-rose-bouquet.webp',
+  './assets/decorations/gold-foil-bits.png',
+  './assets/decorations/gift-box-gold.webp',
+  './assets/decorations/gift-box-blue.webp',
+  './assets/decorations/eucalyptus-branch.webp',
+  './assets/decorations/celebration-cake-studio.webp',
+  './assets/decorations/blue-metallic-balloon-premium.webp',
+  './assets/decorations/balloon-gold-premium.webp',
 ];
 
 self.addEventListener('install', (e) => {

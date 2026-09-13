@@ -176,6 +176,7 @@ button{cursor:pointer}
 
 /* Photo actions */
 .photo-actions{display:flex;flex-direction:column;gap:8px}
+.photo-help{margin:2px 2px 0;color:var(--muted);font-size:11px;line-height:1.4}
 
 /* Stage */
 .stage-wrap{
@@ -302,6 +303,7 @@ button{cursor:pointer}
 }
 @media (max-width: 860px){
   .workspace{grid-template-columns:1fr;grid-template-rows:auto auto auto;overflow:auto}
+  .stage-wrap{order:-1;min-height:min(720px,calc(96vw * 1.4 + 20px))}
   .side{max-height:none;border:none;border-bottom:1px solid var(--line)}
   .side.right{border-left:none;border-top:1px solid var(--line)}
   .stage-wrap{padding:12px}
@@ -310,4 +312,19 @@ button{cursor:pointer}
   .topbar{padding:10px 14px}
   .topbar-actions .btn{padding:7px 10px;font-size:12px}
   .brand-name{font-size:16px}
+}
+@media (max-width: 560px){
+  .topbar{align-items:flex-start;gap:10px;flex-wrap:wrap}
+  .topbar-actions{width:100%;display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+  .topbar-actions .btn{padding:7px 4px;font-size:11px;min-width:0}
+  .export-popover{position:fixed;top:94px;left:10px;right:10px;width:auto}
+  .stage-wrap{padding:10px 8px}
+  .stage{width:min(500px,96%);border-radius:12px}
+  .stage canvas,.welcome{border-radius:12px}
+  .side{padding:14px}
+  .theme-grid{grid-template-columns:repeat(4,1fr)}
+  .theme-swatch{height:58px}
+  .theme-swatch span{font-size:9px;left:5px}
+  .photo-controls{grid-template-columns:1fr}
+  .modal-inner{width:96vw;max-height:94vh}
 }
