@@ -257,6 +257,14 @@ button{cursor:pointer}
 
 /* Decorations */
 .deco-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:280px;overflow:auto}
+.collapsible-panel{border:1px solid var(--line-2);border-radius:12px;background:#1a1613}
+.collapsible-panel summary{cursor:pointer;padding:12px;color:var(--gold-2);font-family:var(--serif);font-size:16px;list-style:none}
+.collapsible-panel summary::-webkit-details-marker{display:none}
+.collapsible-panel summary::after{content:'+';float:right;font-family:var(--sans);color:var(--gold)}
+.collapsible-panel[open] summary{border-bottom:1px solid var(--line)}
+.collapsible-panel[open] summary::after{content:'−'}
+.collapsible-panel summary span{margin-left:8px;color:var(--muted);font-family:var(--sans);font-size:11px;letter-spacing:.03em}
+.collapsible-panel .deco-grid{margin:12px}
 .deco-item{
   aspect-ratio:1;border-radius:10px;border:1px solid var(--line-2);
   background:#0f0c0a center/70% no-repeat;cursor:pointer;position:relative;

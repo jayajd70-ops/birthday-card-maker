@@ -1,5 +1,5 @@
 /* Birthday Card Maker Premium — service worker */
-const VERSION = 'bcm-v1.18.0';
+const VERSION = 'bcm-v1.19.0';
 const CORE = [
   './',
   './index.html',
