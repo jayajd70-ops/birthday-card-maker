@@ -6,6 +6,7 @@ export const THEMES = {
     bg: '#f4ead6',          // ivory / champagne
     bgAccent: '#e6d3a8',
     ink: '#3d2a17',          // deep warm brown
+    messageInk: '#2b1a09',   // darker than the gold florals
     accent: '#b78740',       // gold
     accent2: '#e6c98a',
     backgroundImage: 'assets/backgrounds/elegant-gold-v2.webp',
@@ -17,6 +18,7 @@ export const THEMES = {
     bg: '#fbe6e3',           // blush
     bgAccent: '#f2c9c2',
     ink: '#6d2637',          // burgundy / dusty rose
+    messageInk: '#521829',   // stays clear over pink flowers
     accent: '#c26a76',
     accent2: '#eaa5a0',
     backgroundImage: 'assets/backgrounds/romantic-pink-v2.webp',
@@ -28,6 +30,7 @@ export const THEMES = {
     bg: '#dceffc',
     bgAccent: '#9fd0f4',
     ink: '#082454',
+    messageInk: '#061b42',
     accent: '#092f6f',
     accent2: '#d3a441',
     backgroundImage: 'assets/backgrounds/celebration-blue-v2.webp',
@@ -39,6 +42,7 @@ export const THEMES = {
     bg: '#eef0e6',           // linen / cream
     bgAccent: '#d7dcc5',
     ink: '#3a4a2b',          // moss / earth
+    messageInk: '#233219',
     accent: '#7f9166',       // sage
     accent2: '#c1cba4',
     backgroundImage: 'assets/backgrounds/fresh-natural-v2.webp',
@@ -46,14 +50,14 @@ export const THEMES = {
   },
   'sunshine-yellow': {
     id: 'sunshine-yellow', label: 'Sunshine Joy',
-    bg: '#fff2bd', bgAccent: '#f4c94f', ink: '#573611',
+    bg: '#fff2bd', bgAccent: '#f4c94f', ink: '#573611', messageInk: '#452504',
     accent: '#b76508', accent2: '#f1b91f',
     backgroundImage: 'assets/backgrounds/sunshine-yellow-v1.webp',
     swatch: 'linear-gradient(135deg,#fff5c9 0%,#f6c843 58%,#d8850d 100%)',
   },
   'lavender-dream': {
     id: 'lavender-dream', label: 'Lavender Dream',
-    bg: '#eee8f7', bgAccent: '#c9b9e5', ink: '#3f285f',
+    bg: '#eee8f7', bgAccent: '#c9b9e5', ink: '#3f285f', messageInk: '#2c1648',
     accent: '#754c9e', accent2: '#d9d3e7',
     backgroundImage: 'assets/backgrounds/lavender-dream-v1.webp',
     swatch: 'linear-gradient(135deg,#f3eff9 0%,#c7afe2 58%,#8060a8 100%)',

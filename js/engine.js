@@ -407,7 +407,7 @@ export class CardEngine {
     const drawWrapped = (text, y, bottom, startSize = 20) => {
       let size = startSize, lines = [], lineH = 0;
       while (size >= 12) {
-        ctx.font = `500 ${size}px ${bodyFont}`;
+        ctx.font = `700 ${size}px ${bodyFont}`;
         lines = wrapLines(ctx, text, box.width);
         lineH = size * 1.25;
         if (lines.length * lineH <= bottom - y) break;
@@ -421,7 +421,7 @@ export class CardEngine {
         lines[maxLines - 1] = (last || '').trimEnd() + '…';
       }
       // Keep the message distinct from floral artwork and readable on every background.
-      ctx.font = `500 ${size}px ${bodyFont}`; ctx.fillStyle = theme.messageInk || theme.ink;
+      ctx.font = `700 ${size}px ${bodyFont}`; ctx.fillStyle = theme.messageInk || theme.ink;
       lines.forEach((line, i) => ctx.fillText(line, box.x, y + i * lineH));
     };
 
