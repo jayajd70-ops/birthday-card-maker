@@ -1,4 +1,4 @@
-// Birthday Card Maker Premium — main app (UI wiring)
+// Birthday Card Studio — main app (UI wiring)
 import { CardEngine, defaultAdj, LAYER_ORDER, PHOTO_SLOTS, makeInitialState } from './engine.js';
 import { THEMES, FONTS, LAYOUTS, CANVAS_W, CANVAS_H } from './themes.js';
 import { DECORATIONS, decorationsForTheme } from './data/decorations.js';
@@ -17,6 +17,21 @@ let currentTemplateRecord = null;
 let autosaveTimer = null;
 let lastAiCandidates = [];
 let contentEdited = false;
+
+/* ---- Photo blob garbage collection ---- */
+// A photo blob in IndexedDB is safe to delete once no saved template
+// references its id and it isn't on the live, unsaved card either.
+function currentLivePhotoIds() {
+  return engine.state.elements.filter(e => e.type === 'photo' && e.photoId).map(e => e.photoId);
+}
+let photoGcTimer = null;
+function schedulePhotoGc() {
+  clearTimeout(photoGcTimer);
+  photoGcTimer = setTimeout(() => {
+    store.gcOrphanedPhotos(currentLivePhotoIds()).catch(error => console.warn('Photo cleanup skipped', error));
+  }, 1500);
+}
+engine.onPhotoAssetsChanged = schedulePhotoGc;
 
 function toast(msg) {
   const el = $('#toast');
@@ -541,6 +556,8 @@ async function openTemplate(id) {
       if (blob) engine.attachPhoto(pid, URL.createObjectURL(blob));
     } catch {}
   }
+  // Release the outgoing template's photo URLs now that this state no longer references them.
+  engine.syncPhotoAssets();
   (engine.state.elements || []).forEach(e => { if (e.path) engine.loadAsset(e.path); });
   refreshThemeActive(); refreshFontActive(); refreshLayoutActive();
   buildDecorations();
@@ -577,6 +594,7 @@ async function renderTemplateList() {
       await store.deleteTemplate(r.id);
       renderTemplateList();
       toast('Deleted');
+      schedulePhotoGc();
     };
     list.appendChild(row);
   });
@@ -861,6 +879,10 @@ function applyPreset(preset) {
     engine.applyPhotoSlot(photo, PHOTO_SLOTS[preset.layout][index], index);
     st.elements.push(photo);
   });
+  // A preset with fewer photo slots than the outgoing card (e.g. collage -> single)
+  // drops the extra photos here rather than through addPhoto/setPhotoLayout, so
+  // release their in-memory URLs the same way.
+  engine.syncPhotoAssets();
   pushContentFrom(engine.state);
   refreshThemeActive(); refreshFontActive(); refreshLayoutActive();
   buildDecorations();
@@ -1048,6 +1070,10 @@ buildPresets();
 renderInspector();
 refreshPhotoHelp();
 engine.requestRender();
+// One-off sweep for photo blobs orphaned in earlier sessions (e.g. from
+// before this cleanup existed). The live card is empty at this point, so
+// nothing currently in use can be affected.
+store.gcOrphanedPhotos(currentLivePhotoIds()).catch(error => console.warn('Photo cleanup skipped', error));
 
 /* ---- PWA ---- */
 if ('serviceWorker' in navigator) {

@@ -105,6 +105,7 @@ export class CardEngine {
     this.photoURLs = new Map(); // photoId -> ObjectURL
     this.onSelect = null;
     this.onChange = null;
+    this.onPhotoAssetsChanged = null;
     this.dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
     this.needsRender = false;
     this._raf = null;
@@ -546,6 +547,7 @@ export class CardEngine {
         const selected = existing.find(e => e.id === this.state.selectedId) || existing[0];
         selected.photoId = photoId; selected.adj = defaultAdj();
         this.state.selectedId = selected.id;
+        this.syncPhotoAssets();
         this.onSelect && this.onSelect(selected.id); this.onChange && this.onChange(); this.requestRender();
         return selected;
       }
@@ -555,6 +557,7 @@ export class CardEngine {
       this.state.elements = this.state.elements.filter(e => e.type !== 'photo' || e.id === keep.id);
       this.applyPhotoSlot(keep, slots[0], 0);
       this.state.selectedId = keep.id;
+      this.syncPhotoAssets();
       this.onSelect && this.onSelect(keep.id); this.onChange && this.onChange(); this.requestRender();
       return keep;
     }
@@ -567,6 +570,7 @@ export class CardEngine {
     this.applyPhotoSlot(el, slots[slotIndex], slotIndex);
     this.state.elements.push(el);
     this.state.selectedId = el.id;
+    this.syncPhotoAssets();
     if (this.onSelect) this.onSelect(el.id);
     this.onChange && this.onChange();
     this.requestRender();
@@ -602,6 +606,7 @@ export class CardEngine {
     kept.forEach((el, index) => this.applyPhotoSlot(el, slots[index], index));
     this.state.elements = [...other, ...kept];
     this.reflowDecorations(layout);
+    this.syncPhotoAssets();
     if (!kept.some(e => e.id === this.state.selectedId)) this.state.selectedId = kept[0]?.id || null;
     this.onSelect && this.onSelect(this.state.selectedId);
     this.onChange && this.onChange();
@@ -639,6 +644,7 @@ export class CardEngine {
     if (!id) return;
     this.state.elements = this.state.elements.filter(e => e.id !== id);
     this.state.selectedId = null;
+    this.syncPhotoAssets();
     if (this.onSelect) this.onSelect(null);
     this.onChange && this.onChange();
     this.requestRender();
@@ -708,6 +714,9 @@ export class CardEngine {
     const footerWidth = text.footerWidth ?? text.width;
     const obstacles = [
       ...this.state.elements.filter(e => e.type === 'photo' && !e.hidden),
+      // Also avoid other decorations already on the card, so several icons
+      // sharing a preferred corner don't visually stack on top of each other.
+      ...this.state.elements.filter(e => e.type === 'decoration' && e.id !== el.id && !e.hidden),
       { x: titleX, y: 72, w: titleWidth, h: 82 },
       { x: text.x, y: (text.nameY + text.bodyBottom) / 2, w: text.width, h: text.bodyBottom - text.nameY + 30 },
       { x: footerX, y: text.footerY - 12, w: footerWidth, h: 86 },
@@ -768,6 +777,29 @@ export class CardEngine {
     img.src = url;
     this.photoCache.set(photoId, img);
     return img;
+  }
+
+  // Revoke object URLs (and drop cached images) for any photoId no longer
+  // referenced by an element on the live card — called wherever a photo is
+  // replaced, dropped by a layout change, deleted, or swapped by opening a
+  // different saved template. Without this, replaced/removed photos keep
+  // their blob URL alive in memory for the rest of the session.
+  syncPhotoAssets() {
+    const active = new Set(
+      this.state.elements.filter(e => e.type === 'photo' && e.photoId).map(e => e.photoId)
+    );
+    let changed = false;
+    for (const [photoId, url] of [...this.photoURLs]) {
+      if (active.has(photoId)) continue;
+      try { URL.revokeObjectURL(url); } catch {}
+      this.photoURLs.delete(photoId);
+      this.photoCache.delete(photoId);
+      changed = true;
+    }
+    // Let the host app know a photo is no longer used anywhere on the live
+    // card, so it can garbage-collect the persisted blob if nothing saved
+    // still references it either.
+    if (changed && this.onPhotoAssetsChanged) this.onPhotoAssetsChanged();
   }
 
   /* -------- Interactions -------- */

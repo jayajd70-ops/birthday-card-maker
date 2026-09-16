@@ -1,4 +1,4 @@
-// Theme definitions for Birthday Card Maker Premium
+// Theme definitions for Birthday Card Studio
 export const THEMES = {
   'elegant-gold': {
     id: 'elegant-gold',

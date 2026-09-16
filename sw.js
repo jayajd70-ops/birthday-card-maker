@@ -1,5 +1,5 @@
-/* Birthday Card Maker Premium — service worker */
-const VERSION = 'bcm-v1.27.0';
+/* Birthday Card Studio — service worker */
+const VERSION = 'bcm-v1.28.0';
 const CORE = [
   './',
   './index.html',

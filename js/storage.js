@@ -95,6 +95,33 @@ export async function deletePhotoBlob(id) {
   });
 }
 
+export async function listPhotoIds() {
+  const store = await tx(STORE_PHOTOS);
+  return new Promise((resolve, reject) => {
+    const r = store.getAllKeys();
+    r.onsuccess = () => resolve(r.result || []);
+    r.onerror   = () => reject(r.error);
+  });
+}
+
+// Delete any saved photo blob that no saved template still references.
+// Presets never store photos (see saveAsPreset in app.js), so only
+// templates need checking. `keepIds` lets the caller also protect photos
+// that are on the live, not-yet-saved card — those aren't referenced by
+// any template yet but are still very much in use.
+export async function gcOrphanedPhotos(keepIds = []) {
+  const [templates, photoIds] = await Promise.all([listTemplates(), listPhotoIds()]);
+  const referenced = new Set(keepIds);
+  for (const t of templates) {
+    const els = t.editor?.elements || [];
+    for (const e of els) { if (e.type === 'photo' && e.photoId) referenced.add(e.photoId); }
+    if (t.editor?.photo?.id) referenced.add(t.editor.photo.id);
+  }
+  const orphaned = photoIds.filter(id => !referenced.has(id));
+  await Promise.all(orphaned.map(id => deletePhotoBlob(id)));
+  return orphaned.length;
+}
+
 export async function savePreset(record) {
   const store = await tx(STORE_PRESETS, 'readwrite');
   return new Promise((resolve, reject) => {
