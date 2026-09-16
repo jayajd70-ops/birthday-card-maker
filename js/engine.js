@@ -695,7 +695,13 @@ export class CardEngine {
       'left-aligned': { x: 135, width: 180, nameY: 178, bodyBottom: 510, footerY: 610 },
       'right-aligned': { x: 365, width: 180, nameY: 178, bodyBottom: 510, footerY: 610 },
     };
-    const text = { ...(defaults[this.state.layout] || defaults['center-focus']), ...(comp.text || {}) };
+    // Match drawTexts(): photo-free cards use their dedicated text-only layout.
+    // Otherwise decorations can reserve the wrong area and intrude on text.
+    const hasPhoto = this.state.elements.some(e => e.type === 'photo' && !e.hidden);
+    const text = {
+      ...(defaults[this.state.layout] || defaults['center-focus']),
+      ...((hasPhoto ? comp.text : comp.textOnly) || {}),
+    };
     const titleX = comp.titleX ?? 250;
     const titleWidth = comp.titleWidth ?? 410;
     const footerX = text.footerX ?? text.x;
